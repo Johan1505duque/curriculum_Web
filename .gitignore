@@ -1,4 +1,4 @@
-# Maven
+gitignore# Maven
 target/
 
 # IntelliJ
@@ -8,6 +8,8 @@ out/
 
 # Credenciales (NO subir)
 src/main/java/com/curriculum/config/DatabaseConfig.java
+src/main/resources/application.properties
+src/main/resources/application-local.properties
 
 # Logs
 *.log
