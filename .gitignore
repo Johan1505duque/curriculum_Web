@@ -1,4 +1,4 @@
-gitignore# Maven
+# Maven
 target/
 
 # IntelliJ
@@ -6,10 +6,14 @@ target/
 *.iml
 out/
 
-# Credenciales (NO subir)
+# Bloquear TODOS los properties primero
+*.properties
+
+# Permitir SOLO los archivos seguros
+!src/main/resources/application-prod.properties
+
+# Credenciales específicas
 src/main/java/com/curriculum/config/DatabaseConfig.java
-src/main/resources/application.properties
-src/main/resources/application-local.properties
 
 # Logs
 *.log
