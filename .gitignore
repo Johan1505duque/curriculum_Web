@@ -1,0 +1,16 @@
+# Maven
+target/
+
+# IntelliJ
+.idea/
+*.iml
+out/
+
+# Credenciales (NO subir)
+src/main/java/com/curriculum/config/DatabaseConfig.java
+
+# Logs
+*.log
+
+# Sistema
+.DS_Store
