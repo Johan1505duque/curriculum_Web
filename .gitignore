@@ -12,8 +12,6 @@ out/
 # Permitir SOLO los archivos seguros
 !src/main/resources/application-prod.properties
 
-# Credenciales específicas
-src/main/java/com/curriculum/config/DatabaseConfig.java
 
 # Logs
 *.log
