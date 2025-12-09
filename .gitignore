@@ -10,7 +10,7 @@ out/
 *.properties
 
 # Permitir SOLO los archivos seguros
-!src/main/resources/application-prod.properties
+!src/main/resources/application.properties
 
 
 # Logs
