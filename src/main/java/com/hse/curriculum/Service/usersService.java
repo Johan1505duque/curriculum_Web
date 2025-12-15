@@ -1,7 +1,8 @@
-package com.curriculum.Service;
+package com.hse.curriculum.Service;
 
-import com.curriculum.repository.usersRepository;
-import com.curriculum.models.users;
+import com.hse.curriculum.repository.usersRepository;
+import com.hse.curriculum.models.users;
+import com.hse.curriculum.Security.PasswordService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -13,6 +14,9 @@ public class usersService {
 
     @Autowired
     private usersRepository usersRepository;
+
+    @Autowired
+    private PasswordService passwordService; // ⭐ NUEVA INYECCIÓN
 
     /**
      * Buscar usuario por ID
@@ -59,31 +63,45 @@ public class usersService {
             throw new RuntimeException("El email ya está registrado");
         }
 
-        users newUser = new users(firstName, lastName, email, password);
+        // ⭐ VALIDAR FORTALEZA DE CONTRASEÑA
+        if (!passwordService.isPasswordStrong(password)) {
+            System.out.println("❌ La contraseña no cumple los requisitos de seguridad");
+            throw new RuntimeException("La contraseña debe tener al menos 8 caracteres, incluyendo mayúsculas, minúsculas y números");
+        }
+
+        // ⭐ HASHEAR LA CONTRASEÑA ANTES DE GUARDAR
+        String hashedPassword = passwordService.hashPassword(password);
+
+        users newUser = new users(firstName, lastName, email, hashedPassword);
         users savedUser = usersRepository.save(newUser);
 
         System.out.println("✅ Usuario guardado exitosamente!");
         System.out.println("   ID: " + savedUser.getUserId());
         System.out.println("   Nombre: " + savedUser.getFirstName() + " " + savedUser.getLastName());
         System.out.println("   Email: " + savedUser.getEmail());
+        System.out.println("   🔒 Contraseña hasheada correctamente");
 
         return savedUser;
     }
 
     /**
-     * Guardar nuevo usuario con NOMBRE COMPLETO (lo separa automáticamente)
+     * Guardar nuevo usuario con NOMBRE COMPLETO
      */
     @Transactional
     public users saveWithFullName(String fullName, String email, String password) {
         System.out.println("🔄 Intentando guardar usuario con nombre completo: " + fullName);
 
-        // Verificar si el email ya existe
         if (usersRepository.existsByEmail(email)) {
             System.out.println("❌ El email " + email + " ya está registrado");
             throw new RuntimeException("El email ya está registrado");
         }
 
-        // Separar nombre completo
+        // ⭐ VALIDAR FORTALEZA DE CONTRASEÑA
+        if (!passwordService.isPasswordStrong(password)) {
+            System.out.println("❌ La contraseña no cumple los requisitos de seguridad");
+            throw new RuntimeException("La contraseña debe tener al menos 8 caracteres, incluyendo mayúsculas, minúsculas y números");
+        }
+
         String[] nameParts = splitFullName(fullName);
         String firstName = nameParts[0];
         String lastName = nameParts[1];
@@ -92,16 +110,74 @@ public class usersService {
         System.out.println("   Nombre: " + firstName);
         System.out.println("   Apellido: " + lastName);
 
-        // Crear y guardar usuario
-        users newUser = new users(firstName, lastName, email, password);
+        // ⭐ HASHEAR LA CONTRASEÑA
+        String hashedPassword = passwordService.hashPassword(password);
+
+        users newUser = new users(firstName, lastName, email, hashedPassword);
         users savedUser = usersRepository.save(newUser);
 
         System.out.println("✅ Usuario guardado exitosamente!");
         System.out.println("   ID: " + savedUser.getUserId());
         System.out.println("   Nombre completo: " + savedUser.getFirstName() + " " + savedUser.getLastName());
         System.out.println("   Email: " + savedUser.getEmail());
+        System.out.println("   🔒 Contraseña hasheada correctamente");
 
         return savedUser;
+    }
+
+    /**
+     * ⭐ NUEVO: Autenticar usuario (login)
+     */
+    public boolean authenticate(String email, String password) {
+        System.out.println("🔐 Intentando autenticar usuario: " + email);
+
+        Optional<users> userOpt = usersRepository.findByEmail(email);
+
+        if (userOpt.isEmpty()) {
+            System.out.println("❌ Usuario no encontrado");
+            return false;
+        }
+
+        users user = userOpt.get();
+        boolean isValid = passwordService.verifyPassword(password, user.getPassword());
+
+        if (isValid) {
+            System.out.println("✅ Autenticación exitosa para: " + email);
+        } else {
+            System.out.println("❌ Contraseña incorrecta para: " + email);
+        }
+
+        return isValid;
+    }
+
+    /**
+     * ⭐ NUEVO: Cambiar contraseña
+     */
+    @Transactional
+    public void changePassword(Integer userId, String currentPassword, String newPassword) {
+        System.out.println("🔄 Cambiando contraseña para usuario ID: " + userId);
+
+        users user = usersRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+
+        // Verificar contraseña actual
+        if (!passwordService.verifyPassword(currentPassword, user.getPassword())) {
+            System.out.println("❌ Contraseña actual incorrecta");
+            throw new RuntimeException("La contraseña actual es incorrecta");
+        }
+
+        // Validar nueva contraseña
+        if (!passwordService.isPasswordStrong(newPassword)) {
+            System.out.println("❌ La nueva contraseña no cumple los requisitos");
+            throw new RuntimeException("La nueva contraseña debe tener al menos 8 caracteres, incluyendo mayúsculas, minúsculas y números");
+        }
+
+        // Actualizar contraseña
+        String hashedPassword = passwordService.hashPassword(newPassword);
+        user.setPassword(hashedPassword);
+        usersRepository.save(user);
+
+        System.out.println("✅ Contraseña actualizada exitosamente");
     }
 
     private String[] splitFullName(String fullName) {
@@ -110,49 +186,33 @@ public class usersService {
         }
 
         fullName = fullName.trim();
-
-        // Buscar el primer espacio
         int spaceIndex = fullName.indexOf(' ');
 
         if (spaceIndex > 0) {
-            // Hay al menos un espacio - separar en nombre y apellido
             String firstName = fullName.substring(0, spaceIndex).trim();
             String lastName = fullName.substring(spaceIndex + 1).trim();
             return new String[]{firstName, lastName};
         } else {
-            // No hay espacios - usar todo como nombre
             return new String[]{fullName, ""};
         }
     }
 
-    /**
-     * Actualizar usuario
-     */
     @Transactional
     public users update(users user) {
         System.out.println("🔄 Actualizando usuario ID: " + user.getUserId());
         return usersRepository.save(user);
     }
 
-    /**
-     * Eliminar usuario
-     */
     @Transactional
     public void deleteById(Integer userId) {
         System.out.println("🗑️  Eliminando usuario ID: " + userId);
         usersRepository.deleteById(userId);
     }
 
-    /**
-     * Verificar si un usuario existe por ID
-     */
     public boolean existsById(Integer userId) {
         return usersRepository.existsById(userId);
     }
 
-    /**
-     * Verificar si un email ya está registrado
-     */
     public boolean existsByEmail(String email) {
         return usersRepository.existsByEmail(email);
     }

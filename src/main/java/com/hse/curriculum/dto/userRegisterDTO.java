@@ -1,5 +1,5 @@
 
-package com.curriculum.dto;
+package com.hse.curriculum.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 

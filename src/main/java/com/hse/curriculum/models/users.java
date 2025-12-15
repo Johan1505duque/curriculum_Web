@@ -1,4 +1,4 @@
-package com.curriculum.models;
+package com.hse.curriculum.models;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;

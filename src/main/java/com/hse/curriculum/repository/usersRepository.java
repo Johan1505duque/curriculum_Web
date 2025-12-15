@@ -1,6 +1,6 @@
-package com.curriculum.repository;
+package com.hse.curriculum.repository;
 
-import com.curriculum.models.users;
+import com.hse.curriculum.models.users;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

@@ -1,8 +1,8 @@
-package com.curriculum.controller;
+package com.hse.curriculum.controller;
 
-import com.curriculum.models.users;
-import com.curriculum.Service.usersService;
-import com.curriculum.dto.userRegisterDTO;
+import com.hse.curriculum.models.users;
+import com.hse.curriculum.Service.usersService;
+import com.hse.curriculum.dto.userRegisterDTO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -17,7 +17,7 @@ import java.util.Map;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("/api/users")
+@RequestMapping("users")
 @Tag(name = "Gestión de Usuarios", description = "Endpoints para crear y consultar usuarios")
 @CrossOrigin(origins = "*")
 public class usersController {
@@ -106,18 +106,5 @@ public class usersController {
                             "timestamp", java.time.LocalDateTime.now().toString()
                     ));
         }
-    }
-
-    /**
-     * Health check
-     */
-    @GetMapping("/health")
-    @Operation(summary = "Health Check", description = "Verifica que el servicio esté funcionando")
-    public ResponseEntity<Map<String, String>> healthCheck() {
-        return ResponseEntity.ok(Map.of(
-                "status", "UP",
-                "service", "Users API",
-                "timestamp", java.time.LocalDateTime.now().toString()
-        ));
     }
 }
