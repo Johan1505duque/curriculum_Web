@@ -1,13 +1,7 @@
-
-package com.hse.curriculum.dto;
-
+package com.hse.Curriculum.Dto.LoginDTO;
 import io.swagger.v3.oas.annotations.media.Schema;
-
-/**
- * DTO para el registro de usuarios
- */
-@Schema(description = "Datos requeridos para registrar un nuevo usuario")
-public class userRegisterDTO {
+@Schema(description = "Datos de autenticación del usuario")
+public class LoginDTO {
 
     @Schema(description = "Nombre del usuario", example = "Juan", required = true)
     private String firstName;
@@ -21,19 +15,15 @@ public class userRegisterDTO {
     @Schema(description = "Contraseña del usuario (mínimo 6 caracteres)", example = "password123", required = true)
     private String password;
 
-    // Constructor vacío (IMPORTANTE para Jackson)
-    public userRegisterDTO() {
-    }
+    public LoginDTO() {}
 
-    // Constructor con parámetros
-    public userRegisterDTO(String firstName, String lastName, String email, String password) {
+    public LoginDTO(String firstName, String lastName, String email, String password) {
         this.firstName = firstName;
         this.lastName = lastName;
         this.email = email;
         this.password = password;
     }
 
-    // Getters y Setters (IMPORTANTES)
     public String getFirstName() {
         return firstName;
     }

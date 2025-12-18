@@ -1,4 +1,4 @@
-package com.hse.curriculum.Security;
+package com.hse.Curriculum.Security;
 
 import org.springframework.stereotype.Service;
 

@@ -1,4 +1,4 @@
-package com.hse.curriculum.config;
+package com.hse.Curriculum.Config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -9,7 +9,7 @@ import org.springframework.web.filter.CorsFilter;
 import java.util.Arrays;
 
 @Configuration
-public class corsConfig {  // Cambié el nombre a CorsConfig (con C mayúscula)
+public class CorsConfig {  // Cambié el nombre a CorsConfig (con C mayúscula)
 
     @Bean
     public CorsFilter corsFilter() {

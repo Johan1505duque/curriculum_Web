@@ -1,4 +1,4 @@
-package com.hse.curriculum;
+package com.hse.Curriculum;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;

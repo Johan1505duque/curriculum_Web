@@ -1,0 +1,136 @@
+package com.hse.Curriculum.Controller;
+
+import com.hse.Curriculum.Dto.UserDTO.UserUpdateDTO;
+import com.hse.Curriculum.Models.Users;
+import com.hse.Curriculum.Service.UsersService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+
+@RestController
+@RequestMapping("users")
+@Tag(name = "Gestión de Usuarios", description = "Endpoints para crear y consultar usuarios")
+@CrossOrigin(origins = "*")
+public class UsersController {
+
+    private final UsersService usersService;
+
+    public UsersController(UsersService usersService) {
+        this.usersService = usersService;
+    }
+
+    /**
+     * OBTENER usuario por ID
+     */
+    @GetMapping("/{id}")
+    @Operation(summary = "Obtener usuario por ID",
+            description = "Busca un usuario específico por su ID")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Usuario encontrado"),
+            @ApiResponse(responseCode = "404", description = "Usuario no encontrado")
+    })
+    public ResponseEntity<Users> getUserById(
+            @Parameter(description = "ID del usuario", example = "1")
+            @PathVariable Integer id) {
+
+        Optional<Users> user = usersService.findById(id);
+        return user.map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    /**
+     * ACTUALIZAR perfil del usuario (datos personales)
+     */
+    @PutMapping("/{id}/profile")
+    @Operation(summary = "Actualizar perfil de usuario",
+            description = "Actualiza los datos personales del usuario (documento, teléfono, fecha de nacimiento)")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Perfil actualizado exitosamente"),
+            @ApiResponse(responseCode = "404", description = "Usuario no encontrado"),
+            @ApiResponse(responseCode = "400", description = "Datos inválidos")
+    })
+    public ResponseEntity<?> UpdateUserDTO(
+            @Parameter(description = "ID del usuario", example = "1")
+            @PathVariable Integer id,
+            @RequestBody UserUpdateDTO profileDTO) {
+        try {
+            Users updatedUser = usersService.updateProfile(
+                    id,
+                    profileDTO.getDocumentType(),
+                    profileDTO.getDocumentNumber(),
+                    profileDTO.getPhoneNumber(),
+                    profileDTO.getBirthDate()
+            );
+
+            return ResponseEntity.ok(updatedUser);
+
+        } catch (RuntimeException e) {
+            Map<String, String> error = new HashMap<>();
+            error.put("error", e.getMessage());
+            return ResponseEntity.badRequest().body(error);
+        }
+    }
+
+
+    /**
+     * DESHABILITAR usuario (soft delete)
+     */
+    @PatchMapping("/{id}/disable")
+    @Operation(summary = "Deshabilitar usuario",
+            description = "Deshabilita un usuario del sistema sin eliminarlo permanentemente")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Usuario deshabilitado exitosamente"),
+            @ApiResponse(responseCode = "404", description = "Usuario no encontrado")
+    })
+    public ResponseEntity<?> disableUser(
+            @Parameter(description = "ID del usuario", example = "1")
+            @PathVariable Integer id) {
+        try {
+            usersService.disableUser(id);
+
+            Map<String, String> response = new HashMap<>();
+            response.put("message", "Usuario deshabilitado exitosamente");
+            return ResponseEntity.ok(response);
+
+        } catch (RuntimeException e) {
+            Map<String, String> error = new HashMap<>();
+            error.put("error", e.getMessage());
+            return ResponseEntity.badRequest().body(error);
+        }
+    }
+
+    /**
+     * HABILITAR usuario
+     */
+    @PatchMapping("/{id}/enable")
+    @Operation(summary = "Habilitar usuario",
+            description = "Reactiva un usuario deshabilitado")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Usuario habilitado exitosamente"),
+            @ApiResponse(responseCode = "404", description = "Usuario no encontrado")
+    })
+    public ResponseEntity<?> enableUser(
+            @Parameter(description = "ID del usuario", example = "1")
+            @PathVariable Integer id) {
+        try {
+            usersService.enableUser(id);
+
+            Map<String, String> response = new HashMap<>();
+            response.put("message", "Usuario habilitado exitosamente");
+            return ResponseEntity.ok(response);
+
+        } catch (RuntimeException e) {
+            Map<String, String> error = new HashMap<>();
+            error.put("error", e.getMessage());
+            return ResponseEntity.badRequest().body(error);
+        }
+    }
+}

@@ -1,4 +1,4 @@
-package com.hse.curriculum.Security;
+package com.hse.Curriculum.Security;
 
 import org.bouncycastle.crypto.generators.Argon2BytesGenerator;
 import org.bouncycastle.crypto.params.Argon2Parameters;
