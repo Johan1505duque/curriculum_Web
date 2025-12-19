@@ -1,0 +1,16 @@
+# Maven
+target/
+
+# IntelliJ
+.idea/
+*.iml
+out/
+
+# Bloquear properties con datos sensibles
+src/main/resources/application-local.properties
+
+# Logs
+*.log
+
+# Sistema
+.DS_Store
