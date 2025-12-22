@@ -1,22 +1,30 @@
 package com.hse.Curriculum.Security;
 
 import org.springframework.stereotype.Service;
+import org.springframework.security.crypto.password.PasswordEncoder;
+
 
 @Service
 public class PasswordService {
+
+    private final PasswordEncoder passwordEncoder;
+
+    public PasswordService(PasswordEncoder passwordEncoder) {
+        this.passwordEncoder = passwordEncoder;
+    }
 
     public String hashPassword(String plainPassword) {
         if (plainPassword == null || plainPassword.isEmpty()) {
             throw new IllegalArgumentException("La contraseña no puede estar vacía");
         }
-        return PasswordHasher.hash(plainPassword);
+        return passwordEncoder.encode(plainPassword);
     }
 
     public boolean verifyPassword(String plainPassword, String hashedPassword) {
         if (plainPassword == null || hashedPassword == null) {
             return false;
         }
-        return PasswordHasher.verify(plainPassword, hashedPassword);
+        return passwordEncoder.matches(plainPassword, hashedPassword);
     }
 
     public boolean isPasswordStrong(String password) {
@@ -24,10 +32,9 @@ public class PasswordService {
             return false;
         }
 
-        // Requisitos: mínimo 6 caracteres, mayúscula, minúscula, número
         return password.length() >= 6
-                && password.matches(".*[A-Z].*")  // Al menos una mayúscula
-                && password.matches(".*[a-z].*")  // Al menos una minúscula
-                && password.matches(".*\\d.*");   // Al menos un número
+                && password.matches(".*[A-Z].*")
+                && password.matches(".*[a-z].*")
+                && password.matches(".*\\d.*");
     }
 }
