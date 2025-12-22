@@ -3,6 +3,8 @@ package com.hse.Curriculum.Controller;
 import com.hse.Curriculum.Dto.UserDTO.UserUpdateDTO;
 import com.hse.Curriculum.Models.Users;
 import com.hse.Curriculum.Service.UsersService;
+import com.hse.Curriculum.Dto.UserDTO.UserResponseDTO;
+import com.hse.Curriculum.Dto.UserDTO.UserSignUpDTO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -10,6 +12,9 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.http.HttpStatus;
+import jakarta.validation.Valid;
+
 
 import java.util.HashMap;
 import java.util.Map;
@@ -25,6 +30,21 @@ public class UsersController {
 
     public UsersController(UsersService usersService) {
         this.usersService = usersService;
+    }
+
+    @PostMapping("/register")
+    @Operation(summary = "Registrar usuario",
+            description = "Crea un nuevo usuario con datos básicos")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "201", description = "Usuario registrado exitosamente"),
+            @ApiResponse(responseCode = "400", description = "Datos inválidos"),
+            @ApiResponse(responseCode = "409", description = "Email ya registrado")
+    })
+    public ResponseEntity<UserResponseDTO> register(
+            @Valid @RequestBody UserSignUpDTO signUpDTO
+    ) {
+        UserResponseDTO response = usersService.register(signUpDTO);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     /**

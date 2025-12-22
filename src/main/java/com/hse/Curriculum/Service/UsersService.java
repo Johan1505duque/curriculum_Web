@@ -2,8 +2,12 @@ package com.hse.Curriculum.Service;
 
 import com.hse.Curriculum.Repository.UsersRepository;
 import com.hse.Curriculum.Models.Users;
+import com.hse.Curriculum.Dto.UserDTO.UserSignUpDTO;
+import com.hse.Curriculum.Dto.UserDTO.UserResponseDTO;
 import com.hse.Curriculum.Security.PasswordService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -14,6 +18,10 @@ import java.util.Optional;
 public class UsersService {
 
     private final UsersRepository usersRepository;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
 
     public UsersService(UsersRepository usersRepository) {
         this.usersRepository = usersRepository;
@@ -70,6 +78,39 @@ public class UsersService {
         return updatedUser;
     }
 
+    /**
+     * Registro inicial - Solo datos básicos
+     */
+    @Transactional
+    public UserResponseDTO register(UserSignUpDTO signUpDTO) {
+        System.out.println("📝 Registrando nuevo usuario: " + signUpDTO.getEmail());
+
+        // Validar que el email no exista
+        if (usersRepository.existsByEmail(signUpDTO.getEmail())) {
+            throw new RuntimeException("El email " + signUpDTO.getEmail() + " ya está registrado");
+        }
+
+        // Crear usuario con datos mínimos
+        Users user = new Users();
+        user.setFirstName(signUpDTO.getFirstName());
+        user.setLastName(signUpDTO.getLastName());
+        user.setEmail(signUpDTO.getEmail().toLowerCase());
+        user.setPassword(passwordEncoder.encode(signUpDTO.getPassword()));
+
+        user.setStatus(true); // Activo
+
+        // Guardar
+        Users savedUser = usersRepository.save(user);
+
+        System.out.println("✅ Usuario registrado con ID: " + savedUser.getUserId());
+
+        // Retornar respuesta
+        return new UserResponseDTO(
+                savedUser.getUserId(),
+                savedUser.getEmail(),
+                "Usuario registrado exitosamente."
+        );
+    }
 
     /**
      * Actualizar usuario completo (método genérico)
