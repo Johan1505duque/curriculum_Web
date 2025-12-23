@@ -1,4 +1,4 @@
-package com.hse.Curriculum.Exception;
+package com.hse.Curriculum.Exception.Login;
 
 /**
  * Email duplicado

@@ -2,12 +2,10 @@ package com.hse.Curriculum.Service;
 
 import com.hse.Curriculum.Models.Users;
 import com.hse.Curriculum.Security.PasswordService;
-import com.hse.Curriculum.Exception.InvalidCredentialsException;
+import com.hse.Curriculum.Exception.Login.InvalidCredentialsException;
 import com.hse.Curriculum.Repository.UsersRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.Optional;
 
 @Service
 public class LoginAuthService {

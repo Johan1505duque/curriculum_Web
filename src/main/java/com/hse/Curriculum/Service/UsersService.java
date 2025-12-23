@@ -4,8 +4,6 @@ import com.hse.Curriculum.Repository.UsersRepository;
 import com.hse.Curriculum.Models.Users;
 import com.hse.Curriculum.Dto.UserDTO.UserSignUpDTO;
 import com.hse.Curriculum.Dto.UserDTO.UserResponseDTO;
-import com.hse.Curriculum.Security.PasswordService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -51,32 +49,7 @@ public class UsersService {
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
     }
 
-    /**
-     * Actualizar perfil completo (datos personales)
-     */
-    @Transactional
-    public Users updateProfile(Integer userId,
-                               String documentType,
-                               String documentNumber,
-                               String phoneNumber,
-                               LocalDate birthDate) {
 
-        System.out.println("🔄 Actualizando perfil del usuario ID: " + userId);
-
-        Users user = usersRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
-
-        // Actualizar solo los campos de perfil
-        user.setDocumentType(documentType);
-        user.setDocumentNumber(documentNumber);
-        user.setPhoneNumber(phoneNumber);
-        user.setBirthDate(birthDate);
-
-        Users updatedUser = usersRepository.save(user);
-        System.out.println("✅ Perfil actualizado exitosamente");
-
-        return updatedUser;
-    }
 
     /**
      * Registro inicial - Solo datos básicos

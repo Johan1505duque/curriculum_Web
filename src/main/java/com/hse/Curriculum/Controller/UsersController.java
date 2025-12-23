@@ -1,6 +1,5 @@
 package com.hse.Curriculum.Controller;
 
-import com.hse.Curriculum.Dto.UserDTO.UserUpdateDTO;
 import com.hse.Curriculum.Models.Users;
 import com.hse.Curriculum.Service.UsersService;
 import com.hse.Curriculum.Dto.UserDTO.UserResponseDTO;
@@ -65,40 +64,6 @@ public class UsersController {
         return user.map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
-
-    /**
-     * ACTUALIZAR perfil del usuario (datos personales)
-     */
-    @PutMapping("/{id}/profile")
-    @Operation(summary = "Actualizar perfil de usuario",
-            description = "Actualiza los datos personales del usuario (documento, teléfono, fecha de nacimiento)")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Perfil actualizado exitosamente"),
-            @ApiResponse(responseCode = "404", description = "Usuario no encontrado"),
-            @ApiResponse(responseCode = "400", description = "Datos inválidos")
-    })
-    public ResponseEntity<?> UpdateUserDTO(
-            @Parameter(description = "ID del usuario", example = "1")
-            @PathVariable Integer id,
-            @RequestBody UserUpdateDTO profileDTO) {
-        try {
-            Users updatedUser = usersService.updateProfile(
-                    id,
-                    profileDTO.getDocumentType(),
-                    profileDTO.getDocumentNumber(),
-                    profileDTO.getPhoneNumber(),
-                    profileDTO.getBirthDate()
-            );
-
-            return ResponseEntity.ok(updatedUser);
-
-        } catch (RuntimeException e) {
-            Map<String, String> error = new HashMap<>();
-            error.put("error", e.getMessage());
-            return ResponseEntity.badRequest().body(error);
-        }
-    }
-
 
     /**
      * DESHABILITAR usuario (soft delete)
