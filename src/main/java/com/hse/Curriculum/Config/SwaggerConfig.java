@@ -4,16 +4,33 @@ import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.info.Contact;
 import io.swagger.v3.oas.models.servers.Server;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Configuration
 public class SwaggerConfig {
 
+    @Value("${server.url:http://localhost:8080}")
+    private String serverUrl;
+
     @Bean
     public OpenAPI customOpenAPI() {
+        List<Server> servers = new ArrayList<>();
+
+        // Servidor de producción (Render)
+        servers.add(new Server()
+                .url("https://curriculum-web-0aks.onrender.com")
+                .description("Servidor de Producción (Render)"));
+
+        // Servidor local
+        servers.add(new Server()
+                .url("http://localhost:8080")
+                .description("Servidor Local de Desarrollo"));
+
         return new OpenAPI()
                 .info(new Info()
                         .title("Curriculum API")
@@ -22,10 +39,6 @@ public class SwaggerConfig {
                         .contact(new Contact()
                                 .name("Equipo Curriculum")
                                 .email("contacto@curriculum.com")))
-                .servers(List.of(
-                        new Server()
-                                .url("http://localhost:8080")
-                                .description("Servidor Local de Desarrollo")
-                ));
+                .servers(servers);
     }
 }
