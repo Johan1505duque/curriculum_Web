@@ -3,45 +3,46 @@ package com.hse.Curriculum.Dto.ProfileDTO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+@Schema(description = "Información completa del usuario (datos básicos + perfil)")
+public class UserProfileDTO {
 
-@Schema(description = "Respuesta con datos del perfil")
-public class ProfileResponseDTO {
-
-    @Schema(description = "ID del usuario creado")
+    // ========== DATOS DE USERS ==========
+    @Schema(description = "ID del usuario")
     private Integer userId;
 
-    @Schema(description = "Nombre del usuario")
+    @Schema(description = "Nombre del usuario", example = "Juan")
     private String firstName;
 
-    @Schema(description = "Apellido del usuario")
+    @Schema(description = "Apellido del usuario", example = "Pérez")
     private String lastName;
 
-    @Schema(description = "Email")
+    @Schema(description = "Correo electrónico", example = "juan@example.com")
     private String email;
 
-    @Schema(description = "Password")
-    private String password;
+    // ========== DATOS DE PROFILES ==========
 
-    @Schema(description = "Tipo de documento")
+    @Schema(description = "Tipo de documento", example = "Cédula de Ciudadanía")
     private String documentType;
 
-    @Schema(description = "Número de documento")
+    @Schema(description = "Número de documento", example = "1234567890")
     private String documentNumber;
+
+    @Schema(description = "Número de teléfono", example = "3001234567")
+    private String phoneNumber;
 
     @Schema(description = "Dirección residencial")
     private String residentialAddress;
 
-    @Schema(description = "Número de teléfono")
-    private String phoneNumber;
-
-    @Schema(description = "Fecha de nacimiento")
+    @Schema(description = "Fecha de nacimiento", example = "1990-01-15")
     private LocalDate birthDate;
 
 
-    // Constructor vacío
-    public ProfileResponseDTO() {}
+    // ========== CONSTRUCTORES ==========
+    public UserProfileDTO() {}
 
-    // Getters y Setters
+    // ========== GETTERS Y SETTERS ==========
+
+    // Users
     public Integer getUserId() { return userId; }
     public void setUserId(Integer userId) { this.userId = userId; }
 
@@ -54,8 +55,7 @@ public class ProfileResponseDTO {
     public String getEmail() { return email; }
     public void setEmail(String email) { this.email = email; }
 
-    public String getPassword() { return password; }
-    public void setPassword(String password) { this.password = password; }
+    // Profiles
 
     public String getDocumentType() { return documentType; }
     public void setDocumentType(String documentType) { this.documentType = documentType; }
@@ -63,14 +63,12 @@ public class ProfileResponseDTO {
     public String getDocumentNumber() { return documentNumber; }
     public void setDocumentNumber(String documentNumber) { this.documentNumber = documentNumber; }
 
-    public String getResidentialAddress() { return residentialAddress; }
-    public void setResidentialAddress(String residentialAddress) { this.residentialAddress = residentialAddress; }
-
-
     public String getPhoneNumber() { return phoneNumber; }
     public void setPhoneNumber(String phoneNumber) { this.phoneNumber = phoneNumber; }
 
     public LocalDate getBirthDate() { return birthDate; }
     public void setBirthDate(LocalDate birthDate) { this.birthDate = birthDate; }
 
+    public String getResidentialAddress() { return residentialAddress; }
+    public void setResidentialAddress(String residentialAddress) { this.residentialAddress = residentialAddress; }
 }

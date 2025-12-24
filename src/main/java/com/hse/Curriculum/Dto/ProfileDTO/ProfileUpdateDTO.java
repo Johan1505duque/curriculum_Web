@@ -3,12 +3,24 @@ package com.hse.Curriculum.Dto.ProfileDTO;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.*;
 import java.time.LocalDate;
-/**
- * DTO para REGISTRAR el perfil del usuario (datos personales adicionales)
- */
-@Schema(description = "Datos para crear o actualizar el perfil del usuario")
 
-public class RegisterPerfileDTO {
+/**
+ * DTO para ACTUALIZAR datos del usuario y perfil
+ */
+@Schema(description = "Datos para actualizar usuario y perfil  ")
+public class ProfileUpdateDTO {
+    // ========== DATOS DE USERS ==========
+    @NotBlank(message = "El nombre es obligatorio")
+    @Size(min = 2, max = 100)
+    @Schema(description = "Nombre del usuario", example = "Juan")
+    private String firstName;
+
+    @NotBlank(message = "El apellido es obligatorio")
+    @Size(min = 2, max = 100)
+    @Schema(description = "Apellido del usuario", example = "Pérez")
+    private String lastName;
+
+    // ========== DATOS DE PROFILES ==========
     @NotBlank(message = "El tipo de documento es obligatorio")
     @Schema(description = "Tipo de documento", example = "Cédula de Ciudadanía")
     private String documentType;
@@ -16,6 +28,10 @@ public class RegisterPerfileDTO {
     @NotBlank(message = "El número de documento es obligatorio")
     @Schema(description = "Número de documento", example = "1234567890")
     private String documentNumber;
+
+    @NotBlank(message = "La Dirección residencial  es obligatorio")
+    @Schema(description = "Dirección residencial", example = "Cra 1 Nª 23 - 56")
+    private String residentialAddress;
 
     @NotBlank(message = "El número de teléfono es obligatorio")
     @Pattern(regexp = "^[0-9]{10}$", message = "El teléfono debe tener 10 dígitos")
@@ -27,20 +43,16 @@ public class RegisterPerfileDTO {
     @Schema(description = "Fecha de nacimiento", example = "1990-01-15")
     private LocalDate birthDate;
 
+    // ========== CONSTRUCTORES ==========
+    public ProfileUpdateDTO() {}
 
+    // ========== GETTERS Y SETTERS ==========
+    public String getFirstName() { return firstName; }
+    public void setFirstName(String firstName) { this.firstName = firstName; }
 
-    // Constructores
-    public RegisterPerfileDTO() {}
+    public String getLastName() { return lastName; }
+    public void setLastName(String lastName) { this.lastName = lastName; }
 
-    public RegisterPerfileDTO(String documentType, String documentNumber,
-                      String phoneNumber, LocalDate birthDate) {
-        this.documentType = documentType;
-        this.documentNumber = documentNumber;
-        this.phoneNumber = phoneNumber;
-        this.birthDate = birthDate;
-    }
-
-    // Getters y Setters
     public String getDocumentType() { return documentType; }
     public void setDocumentType(String documentType) { this.documentType = documentType; }
 
@@ -50,8 +62,9 @@ public class RegisterPerfileDTO {
     public String getPhoneNumber() { return phoneNumber; }
     public void setPhoneNumber(String phoneNumber) { this.phoneNumber = phoneNumber; }
 
+    public String getResidentialAddress() { return residentialAddress; }
+    public void setResidentialAddress(String residentialAddress) { this.residentialAddress = residentialAddress; }
+
     public LocalDate getBirthDate() { return birthDate; }
     public void setBirthDate(LocalDate birthDate) { this.birthDate = birthDate; }
-
 }
-

@@ -1,11 +1,8 @@
 package com.hse.Curriculum.Controller;
 
-
-import com.hse.Curriculum.Dto.ProfileDTO.RegisterPerfileDTO;
-import com.hse.Curriculum.Dto.ProfileDTO.ProfessionalProfileUpdateDTO;
-import com.hse.Curriculum.Dto.ProfileDTO.ProfileResponseDTO;
+import com.hse.Curriculum.Dto.ProfileDTO.*;
 import com.hse.Curriculum.Exception.Profile.*;
-import com.hse.Curriculum.Service.ProfilesService;
+import com.hse.Curriculum.Service.*;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -16,7 +13,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
 import java.util.Map;
 
 @RestController
@@ -24,68 +20,121 @@ import java.util.Map;
 @Tag(name = "Profiles", description = "Gestión de perfiles de usuario")
 @CrossOrigin(origins = "*")
 public class ProfilesController {
-    private final ProfilesService profilesService;
 
-    public ProfilesController(ProfilesService profilesService) {
+    private final ProfilesService profilesService;
+    private final UserProfileService userProfileService; // ✅ Un solo servicio con todos los métodos
+
+    // ✅ Constructor correcto
+    public ProfilesController(ProfilesService profilesService,
+                              UserProfileService userProfileService) {
         this.profilesService = profilesService;
+        this.userProfileService = userProfileService;
     }
 
     /**
-     * CREAR perfil para un usuario
+     * POST - Registrar usuario con perfil completo
      */
-    @PostMapping("/user/{userId}/register")
-    @Operation(summary = "Crear perfil de usuario",
-            description = "Crea un perfil con datos personales para un usuario existente")
+    @PostMapping("/complete")
+    @Operation(
+            summary = "Registro completo de usuario",
+            description = "Crea un usuario con sus datos de autenticación y perfil personal en una sola operación"
+    )
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "201", description = "Perfil creado exitosamente"),
-            @ApiResponse(responseCode = "404", description = "Usuario no encontrado"),
-            @ApiResponse(responseCode = "409", description = "El usuario ya tiene perfil o documento duplicado"),
+            @ApiResponse(responseCode = "201", description = "Usuario y perfil creados exitosamente"),
+            @ApiResponse(responseCode = "409", description = "Email o documento ya registrado"),
             @ApiResponse(responseCode = "400", description = "Datos inválidos")
     })
-    public ResponseEntity<?> createProfile(
-            @Parameter(description = "ID del usuario", example = "1")
-            @PathVariable Integer userId,
-            @Valid @RequestBody RegisterPerfileDTO profileDTO) {
+    public ResponseEntity<?> registerComplete(
+            @Valid @RequestBody PerfileRegisterDTO registrationDTO) {
         try {
-            ProfileResponseDTO response = profilesService.createProfile(userId, profileDTO);
+            // ✅ Usar el mismo servicio que ya tienes inyectado
+            ProfileResponseDTO response =
+                    userProfileService.registerUserWithProfile(registrationDTO);
+
             return ResponseEntity.status(HttpStatus.CREATED).body(response);
 
-        } catch (ProfileAlreadyExistsException | DuplicateDocumentException e) {
+        } catch (DuplicateDocumentException e) {
             return ResponseEntity.status(HttpStatus.CONFLICT)
-                    .body(Map.of("error", e.getMessage()));
+                    .body(Map.of(
+                            "error", "Documento duplicado",
+                            "message", e.getMessage()
+                    ));
 
         } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(Map.of("error", e.getMessage()));
+            if (e.getMessage().contains("email")) {
+                return ResponseEntity.status(HttpStatus.CONFLICT)
+                        .body(Map.of(
+                                "error", "Email duplicado",
+                                "message", e.getMessage()
+                        ));
+            }
+
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of(
+                            "error", "Error en el registro",
+                            "message", e.getMessage()
+                    ));
         }
     }
 
     /**
-     * ACTUALIZAR perfil del usuario
+     * PUT - Actualizar datos completos
      */
-    @PutMapping("/user/{userId}")
-    @Operation(summary = "Actualizar perfil de usuario",
-            description = "Actualiza los datos personales del perfil de un usuario")
+    @PutMapping("/{userId}/complete")
+    @Operation(
+            summary = "Actualizar usuario y perfil completo",
+            description = "Actualiza nombre, apellido y datos del perfil. Email NO modificable."
+    )
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Perfil actualizado exitosamente"),
-            @ApiResponse(responseCode = "404", description = "Perfil no encontrado"),
-            @ApiResponse(responseCode = "409", description = "Documento duplicado"),
-            @ApiResponse(responseCode = "400", description = "Datos inválidos")
+            @ApiResponse(responseCode = "200", description = "Actualizado exitosamente"),
+            @ApiResponse(responseCode = "404", description = "Usuario o perfil no encontrado"),
+            @ApiResponse(responseCode = "409", description = "Documento duplicado")
     })
-    public ResponseEntity<?> updateProfile(
+    public ResponseEntity<?> updateCompleteProfile(
             @Parameter(description = "ID del usuario", example = "1")
             @PathVariable Integer userId,
-            @Valid @RequestBody RegisterPerfileDTO profileDTO) {
+            @Valid @RequestBody ProfileUpdateDTO updateDTO) {
         try {
-            ProfileResponseDTO response = profilesService.updateProfile(userId, profileDTO);
+            // ✅ Mismo servicio, método diferente
+            ProfileResponseDTO response =
+                    userProfileService.updateCompleteProfile(userId, updateDTO);
+
             return ResponseEntity.ok(response);
 
         } catch (ProfileNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(Map.of("error", e.getMessage()));
+                    .body(Map.of("error", "Perfil no encontrado", "message", e.getMessage()));
 
         } catch (DuplicateDocumentException e) {
             return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body(Map.of("error", "Documento duplicado", "message", e.getMessage()));
+
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of("error", "Usuario no encontrado", "message", e.getMessage()));
+        }
+    }
+
+    /**
+     * GET - Obtener información completa
+     */
+    @GetMapping("/{userId}/complete")
+    @Operation(summary = "Obtener información completa del usuario",
+            description = "Retorna datos de usuario y perfil combinados")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Información obtenida"),
+            @ApiResponse(responseCode = "404", description = "Usuario no encontrado")
+    })
+    public ResponseEntity<?> getUserProfile(
+            @Parameter(description = "ID del usuario", example = "1")
+            @PathVariable Integer userId) {
+        try {
+            // ✅ Mismo servicio
+            UserProfileDTO response = userProfileService.getUserProfile(userId);
+            return ResponseEntity.ok(response);
+
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body(Map.of("error", e.getMessage()));
         }
     }
@@ -117,28 +166,8 @@ public class ProfilesController {
                     .body(Map.of("error", e.getMessage()));
         }
     }
-    /**
-     * OBTENER perfil por ID de usuario
-     */
-    @GetMapping("/user/{userId}")
-    @Operation(summary = "Obtener perfil de usuario",
-            description = "Recupera el perfil de un usuario específico")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Perfil encontrado"),
-            @ApiResponse(responseCode = "404", description = "Perfil no encontrado")
-    })
-    public ResponseEntity<?> getProfile(
-            @Parameter(description = "ID del usuario", example = "1")
-            @PathVariable Integer userId) {
-        try {
-            ProfileResponseDTO response = profilesService.getProfileByUserId(userId);
-            return ResponseEntity.ok(response);
 
-        } catch (ProfileNotFoundException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(Map.of("error", e.getMessage()));
-        }
-    }
+
 
     /**
      * ELIMINAR perfil
@@ -162,8 +191,4 @@ public class ProfilesController {
                     .body(Map.of("error", e.getMessage()));
         }
     }
-
-
 }
-
-

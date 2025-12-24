@@ -30,6 +30,9 @@ public class Profiles {
     @Column(name = "birthdate")
     private LocalDate birthDate;
 
+    @Column(name = "residential_address")
+    private String residentialAddress;
+
     // ========== COMPLEMENTO ==========
     @Column(name = "professional_summary", columnDefinition = "TEXT")
     private String professionalSummary;
@@ -57,12 +60,13 @@ public class Profiles {
     }
 
     // Constructor para REGISTRO PERFIL
-    public Profiles(String documentType, String documentNumber,
+    public Profiles(String documentType, String documentNumber, String residentialAddress,
                     String phoneNumber, LocalDate birthDate, Users user) {
         this.documentType = documentType;
         this.documentNumber = documentNumber;
         this.phoneNumber = phoneNumber;
         this.birthDate = birthDate;
+        this.residentialAddress = residentialAddress;
         this.user = user;
     }
 
@@ -128,6 +132,14 @@ public class Profiles {
 
     public void setPhoneNumber(String phoneNumber) {
         this.phoneNumber = phoneNumber;
+    }
+
+    public String getResidentialAddress() {
+        return residentialAddress;
+    }
+
+    public void setResidentialAddress(String residentialAddress) {
+        this.residentialAddress = residentialAddress;
     }
 
     public LocalDate getBirthDate() {
