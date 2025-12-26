@@ -40,13 +40,15 @@ public class Profiles {
     @Column(name = "career_achievements", columnDefinition = "TEXT")
     private String careerAchievements;
 
-
     // ========== FECHAS ==========
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+
+    @Column(name = "profile_complete", nullable = false, columnDefinition = "BOOLEAN DEFAULT FALSE")
+    private Boolean profileComplete = false;
 
     // ========== CONSTRUCTORES ==========
     public Profiles() {}
@@ -77,12 +79,20 @@ public class Profiles {
         this.updatedAt = LocalDateTime.now();
     }
 
+    @Transient
+    public boolean hasMinimumData() {
+        return documentNumber != null && !documentNumber.isEmpty() &&
+                phoneNumber != null && !phoneNumber.isEmpty() &&
+                birthDate != null;
+    }
+
     @PreUpdate
     protected void onUpdate() {
         this.updatedAt = LocalDateTime.now();
     }
 
     // ========== GETTERS Y SETTERS ==========
+
     public Integer getProfilesId() {
         return profilesId;
     }
@@ -150,7 +160,7 @@ public class Profiles {
         this.birthDate = birthDate;
     }
 
-    public String getProfessionalSummary() {
+    public String setProfessionalSummary() {
         return professionalSummary;
     }
 
@@ -166,6 +176,13 @@ public class Profiles {
         this.careerAchievements = careerAchievements;
     }
 
+    public Boolean getProfileComplete() {
+        return profileComplete;
+    }
+
+    public void setProfileComplete(Boolean profileComplete) {
+        this.profileComplete = profileComplete;
+    }
 
     public LocalDateTime getCreatedAt() {
         return createdAt;

@@ -5,11 +5,23 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 import java.util.Optional;
 
+import java.util.List;
+import java.util.Optional;
 @Repository
 public interface ProfilesRepository extends JpaRepository<Profiles, Integer> {
 
     // Buscar perfil por ID de usuario
     Optional<Profiles> findByUser_UserId(Integer userId);
+    /**
+     * Buscar perfiles incompletos
+     */
+    List<Profiles> findByProfileCompleteFalse();
+
+    /**
+     * Buscar perfiles completos
+     */
+    List<Profiles> findByProfileCompleteTrue();
+
 
     // Verificar si existe perfil para un usuario
     boolean existsByUser_UserId(Integer userId);

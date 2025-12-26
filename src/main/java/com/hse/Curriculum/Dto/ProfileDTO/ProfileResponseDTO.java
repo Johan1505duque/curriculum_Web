@@ -22,6 +22,9 @@ public class ProfileResponseDTO {
     @Schema(description = "Password")
     private String password;
 
+    @Schema(description = "perfil_id")
+    private Integer profile_id;
+
     @Schema(description = "Tipo de documento")
     private String documentType;
 
@@ -37,9 +40,13 @@ public class ProfileResponseDTO {
     @Schema(description = "Fecha de nacimiento")
     private LocalDate birthDate;
 
+    @Schema(description = "Mensaje", example = "Usuario registrado exitosamente")
+    private String message;
+
 
     // Constructor vacío
     public ProfileResponseDTO() {}
+
 
     // Getters y Setters
     public Integer getUserId() { return userId; }
@@ -57,6 +64,9 @@ public class ProfileResponseDTO {
     public String getPassword() { return password; }
     public void setPassword(String password) { this.password = password; }
 
+    public Integer getProfileId() { return profile_id; }
+    public void setProfileId(Integer profile_id) { this.profile_id = profile_id; }
+
     public String getDocumentType() { return documentType; }
     public void setDocumentType(String documentType) { this.documentType = documentType; }
 
@@ -72,5 +82,8 @@ public class ProfileResponseDTO {
 
     public LocalDate getBirthDate() { return birthDate; }
     public void setBirthDate(LocalDate birthDate) { this.birthDate = birthDate; }
+
+    public String getMessage() { return message; }
+    public void setMessage(String message) { this.message = message; }
 
 }

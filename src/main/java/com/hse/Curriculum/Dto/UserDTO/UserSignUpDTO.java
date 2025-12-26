@@ -7,6 +7,10 @@ import jakarta.validation.constraints.Size;
 
 @Schema(description = "Datos para registro inicial de usuario")
 public class UserSignUpDTO {
+
+    @Schema(description = "ID del usuario creado")
+    private Integer userId;
+
     @NotBlank(message = "El nombre es obligatorio")
     @Schema(description = "Nombre del usuario", example = "Juan", required = true)
     private String firstName;
@@ -25,8 +29,28 @@ public class UserSignUpDTO {
     @Schema(description = "Contraseña", example = "password123", required = true)
     private String password;
 
+    @Schema(description = "Mensaje", example = "Usuario registrado exitosamente")
+    private String message;
+
     // Constructores, Getters y Setters
     public UserSignUpDTO() {}
+
+    public UserSignUpDTO(
+            Integer userId,
+            String email,
+            String firstName,
+            String lastName,
+            String message
+    ) {
+        this.userId = userId;
+        this.email = email;
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.message = message;
+    }
+
+    public Integer getUserId() { return userId; }
+    public void setUserId(Integer userId) { this.userId = userId; }
 
     public String getFirstName() { return firstName; }
     public void setFirstName(String firstName) { this.firstName = firstName; }
@@ -39,6 +63,9 @@ public class UserSignUpDTO {
 
     public String getPassword() { return password; }
     public void setPassword(String password) { this.password = password; }
+
+    public String getMessage() { return message; }
+    public void setMessage(String message) { this.message = message; }
 
     @Override
     public String toString() {

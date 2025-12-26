@@ -40,6 +40,13 @@ public class UsersService {
 
         return user;
     }
+    /**
+     * Buscar usuario por email
+     */
+    public Optional<Users> findByEmail(String email) {
+        System.out.println("🔍 Buscando usuario con email: " + email);
+        return usersRepository.findByEmail(email);
+    }
 
     /**
      * Obtener usuario por ID (lanza excepción si no existe)
@@ -55,34 +62,20 @@ public class UsersService {
      * Registro inicial - Solo datos básicos
      */
     @Transactional
-    public UserResponseDTO register(UserSignUpDTO signUpDTO) {
-        System.out.println("📝 Registrando nuevo usuario: " + signUpDTO.getEmail());
+    public Users register(UserSignUpDTO signUpDTO) {
 
-        // Validar que el email no exista
         if (usersRepository.existsByEmail(signUpDTO.getEmail())) {
-            throw new RuntimeException("El email " + signUpDTO.getEmail() + " ya está registrado");
+            throw new RuntimeException("El email ya está registrado");
         }
 
-        // Crear usuario con datos mínimos
         Users user = new Users();
         user.setFirstName(signUpDTO.getFirstName());
         user.setLastName(signUpDTO.getLastName());
         user.setEmail(signUpDTO.getEmail().toLowerCase());
         user.setPassword(passwordEncoder.encode(signUpDTO.getPassword()));
+        user.setStatus(true);
 
-        user.setStatus(true); // Activo
-
-        // Guardar
-        Users savedUser = usersRepository.save(user);
-
-        System.out.println("✅ Usuario registrado con ID: " + savedUser.getUserId());
-
-        // Retornar respuesta
-        return new UserResponseDTO(
-                savedUser.getUserId(),
-                savedUser.getEmail(),
-                "Usuario registrado exitosamente."
-        );
+        return usersRepository.save(user);
     }
 
     /**

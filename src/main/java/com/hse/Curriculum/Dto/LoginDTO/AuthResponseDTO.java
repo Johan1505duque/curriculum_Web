@@ -1,11 +1,19 @@
 package com.hse.Curriculum.Dto.LoginDTO;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
  * DTO para respuesta de autenticación
  */
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 @Schema(description = "Respuesta de autenticación exitosa")
 public class AuthResponseDTO {
 
@@ -18,10 +26,15 @@ public class AuthResponseDTO {
     @Schema(description = "Nombre completo", example = "Juan Pérez")
     private String fullName;
 
+    private String accessToken;
+    private String refreshToken;
+    private String tokenType = "Bearer";
+    private Long expiresIn;
+
     @Schema(description = "Mensaje de éxito", example = "Autenticación exitosa")
     private String message;
 
-    public AuthResponseDTO() {}
+
 
     public AuthResponseDTO(Integer userId, String email, String fullName, String message) {
         this.userId = userId;
@@ -62,3 +75,4 @@ public class AuthResponseDTO {
         this.message = message;
     }
 }
+

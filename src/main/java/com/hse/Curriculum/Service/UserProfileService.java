@@ -168,6 +168,7 @@ public class UserProfileService {
 
         // 5. Construir respuesta
         ProfileResponseDTO response = new ProfileResponseDTO();
+
         response.setUserId(savedUser.getUserId());
         response.setFirstName(savedUser.getFirstName());
         response.setLastName(savedUser.getLastName());

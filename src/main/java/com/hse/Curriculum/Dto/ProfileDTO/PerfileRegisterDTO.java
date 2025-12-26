@@ -31,6 +31,10 @@ public class PerfileRegisterDTO {
     private String password;
 
     // ========== DATOS DE PROFILES (Información personal) ==========
+
+    @Schema(description = "ID del perfil")
+    private Integer profileId;
+
     @NotBlank(message = "El tipo de documento es obligatorio")
     @Schema(description = "Tipo de documento", example = "Cédula de Ciudadanía", required = true)
     private String documentType;
@@ -67,6 +71,8 @@ public class PerfileRegisterDTO {
     public String getEmail() { return email; }
     public void setEmail(String email) { this.email = email; }
 
+    public Integer getProfileId() { return profileId; }
+    public void setProfileId(Integer profileId) { this.profileId = profileId; }
 
     public String getDocumentType() { return documentType; }
     public void setDocumentType(String documentType) { this.documentType = documentType; }
