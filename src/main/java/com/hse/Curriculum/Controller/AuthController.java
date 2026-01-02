@@ -6,7 +6,6 @@ import com.hse.Curriculum.Service.JwtService;
 import com.hse.Curriculum.Service.LoginAuthService;
 import com.hse.Curriculum.Service.UsersService;
 import com.hse.Curriculum.Dto.LoginDTO.AuthResponseDTO;
-import com.hse.Curriculum.Dto.LoginDTO.RefreshTokenDTO;
 import com.hse.Curriculum.Dto.LoginDTO.ChangePasswordDTO;
 import com.hse.Curriculum.Dto.LoginDTO.LoginDTO;
 import com.hse.Curriculum.Models.Users;
@@ -22,6 +21,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+
 /**
  * Controlador para autenticación y operaciones relacionadas con contraseñas
  */

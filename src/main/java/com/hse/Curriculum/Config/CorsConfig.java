@@ -1,7 +1,5 @@
 package com.hse.Curriculum.Config;
 
-
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.cors.CorsConfiguration;
@@ -9,66 +7,59 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
 
 import java.util.Arrays;
-import java.util.List;
 
 @Configuration
-public class CorsConfig {  // Cambié el nombre a CorsConfig (con C mayúscula)
-
-
-    @Value("${cors.allowed.origins:http://localhost:3000,http://localhost:4200}")
-    private String allowedOrigins;
+public class CorsConfig {
 
     @Bean
     public CorsFilter corsFilter() {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         CorsConfiguration config = new CorsConfiguration();
 
-        // Orígenes permitidos (desarrollo + producción)
-        List<String> origins = Arrays.asList(
+        // Orígenes específicos permitidos
+        config.setAllowedOrigins(Arrays.asList(
                 // Localhost para desarrollo
+                "http://localhost:8080",
                 "http://localhost:3000",
                 "http://localhost:4200",
                 "http://localhost:5173",
                 "http://127.0.0.1:3000",
                 "http://127.0.0.1:4200",
 
-                // Render (tu backend en Swagger)
+                // IP de tu compañero (ajusta el puerto si es necesario)
+                "http://192.168.20.63",
+                "http://192.168.20.63:3000",
+                "http://192.168.20.63:4200",
+                "http://192.168.20.63:5173",
+                "http://192.168.20.63:8080",
+
+                // Producción
                 "https://curriculum-web-0aks.onrender.com",
-
-                // AGREGA AQUÍ LA URL DEL FRONTEND DEL DESARROLLADOR
-                // Por ejemplo: "https://frontend-app.vercel.app"
-                // O si usa Render también: "https://su-frontend.onrender.com"
-
-                // Patrón comodín para subdominios de Render (opcional)
-                "https://*.onrender.com"
-        );
-
-        config.setAllowedOriginPatterns(Arrays.asList(
-                "http://localhost:*",
-                "http://127.0.0.1:*",
-                "https://*.onrender.com",
-                "https://*.vercel.app",
-                "https://*.netlify.app"
+                "https://ips-heart-s.vercel.app"
         ));
 
         // Credenciales habilitadas
         config.setAllowCredentials(true);
 
         // Headers permitidos
-        config.setAllowedHeaders(Arrays.asList("*"));
+        config.setAllowedHeaders(Arrays.asList(
+                "Authorization",
+                "Content-Type",
+                "Accept",
+                "X-Requested-With",
+                "Origin"
+        ));
 
         // Métodos HTTP
         config.setAllowedMethods(Arrays.asList(
-                "GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH", "HEAD"
+                "GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"
         ));
 
         // Headers expuestos
         config.setExposedHeaders(Arrays.asList(
                 "Authorization",
                 "Content-Type",
-                "X-Total-Count",
-                "Access-Control-Allow-Origin",
-                "Access-Control-Allow-Credentials"
+                "X-Total-Count"
         ));
 
         config.setMaxAge(3600L);
