@@ -17,29 +17,42 @@ public class SwaggerConfig {
     @Value("${spring.profiles.active:local}")
     private String activeProfile;
 
+    @Value("${app.ngrok.url:}")
+    private String ngrokUrl;
+
     @Bean
     public OpenAPI customOpenAPI() {
         List<Server> servers = new ArrayList<>();
 
-        // ✅ Si estamos en LOCAL, poner localhost PRIMERO
+        // Si estamos en LOCAL
         if ("local".equals(activeProfile)) {
+
+            // 1. NGROK - Si está configurado, ponerlo PRIMERO
+            if (ngrokUrl != null && !ngrokUrl.isEmpty()) {
+                servers.add(new Server()
+                        .url(ngrokUrl)
+                        .description("🌐 Ngrok (Acceso Público)"));
+            }
+
+            // 2. LOCALHOST - Para desarrollo local
             servers.add(new Server()
                     .url("http://localhost:8080")
-                    .description("Servidor Local de Desarrollo"));
+                    .description("💻 Servidor Local"));
 
+            // 3. RENDER - Para probar producción
             servers.add(new Server()
                     .url("https://curriculum-web-0aks.onrender.com")
-                    .description("Servidor de Producción (Render)"));
+                    .description("🚀 Producción (Render)"));
         }
-        // En PRODUCCIÓN, poner Render PRIMERO
+        // En PRODUCCIÓN
         else {
             servers.add(new Server()
                     .url("https://curriculum-web-0aks.onrender.com")
-                    .description("Servidor de Producción (Render)"));
+                    .description("🚀 Producción (Render)"));
 
             servers.add(new Server()
                     .url("http://localhost:8080")
-                    .description("Servidor Local de Desarrollo"));
+                    .description("💻 Servidor Local"));
         }
 
         return new OpenAPI()
