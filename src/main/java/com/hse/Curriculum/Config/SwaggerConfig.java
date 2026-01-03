@@ -1,9 +1,12 @@
 package com.hse.Curriculum.Config;
 
 import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.info.Contact;
 import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.servers.Server;
+import io.swagger.v3.oas.models.security.SecurityScheme;
+import io.swagger.v3.oas.models.security.SecurityRequirement;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -27,33 +30,44 @@ public class SwaggerConfig {
         // Si estamos en LOCAL
         if ("local".equals(activeProfile)) {
 
-            // 1. NGROK - Si está configurado, ponerlo PRIMERO
+            // 1.LOCALHOST -
+            if (ngrokUrl != null && !ngrokUrl.isEmpty()) {
+                // 1️⃣ LOCALHOST → Swagger SIEMPRE aquí
+                servers.add(new Server()
+                        .url("http://localhost:8080")
+                        .description("💻 Local (Swagger recomendado)")
+                );
+            }
+
+            // 2. NGROK
             if (ngrokUrl != null && !ngrokUrl.isEmpty()) {
                 servers.add(new Server()
                         .url(ngrokUrl)
-                        .description("🌐 Ngrok (Acceso Público)"));
-            }
-
-            // 2. LOCALHOST - Para desarrollo local
-            servers.add(new Server()
-                    .url("http://localhost:8080")
-                    .description("💻 Servidor Local"));
+                        .description("🌐 Ngrok (Frontend / externo)")
+                );
 
             // 3. RENDER - Para probar producción
             servers.add(new Server()
                     .url("https://curriculum-web-0aks.onrender.com")
-                    .description("🚀 Producción (Render)"));
+                        .description("🚀 Producción (Render)"));
+            }
         }
         // En PRODUCCIÓN
         else {
+            // PRODUCCIÓN
             servers.add(new Server()
                     .url("https://curriculum-web-0aks.onrender.com")
-                    .description("🚀 Producción (Render)"));
-
-            servers.add(new Server()
-                    .url("http://localhost:8080")
-                    .description("💻 Servidor Local"));
+                    .description("🚀 Producción (Render)")
+            );
         }
+        // 🔐 DEFINICIÓN DE JWT
+        Components components = new Components()
+                .addSecuritySchemes("bearerAuth",
+                        new SecurityScheme()
+                                .type(SecurityScheme.Type.HTTP)
+                                .scheme("bearer")
+                                .bearerFormat("JWT")
+                );
 
         return new OpenAPI()
                 .info(new Info()
@@ -63,6 +77,8 @@ public class SwaggerConfig {
                         .contact(new Contact()
                                 .name("Equipo Curriculum")
                                 .email("contacto@curriculum.com")))
-                .servers(servers);
+                .servers(servers)
+                .components(components);
+
     }
 }

@@ -35,39 +35,33 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+
                 .authorizeHttpRequests(auth -> auth
-                        // Rutas públicas - NO requieren autenticación
+                        // 🔓 ENDPOINTS PÚBLICOS
                         .requestMatchers(
-                                // Autenticación
-                                "/auth/**",
+                                "/auth/login",
+                                "/auth/refresh",
                                 "/users/register",
                                 "/profiles/complete",
 
-                                // Swagger UI
+                                // Swagger
                                 "/swagger-ui/**",
                                 "/swagger-ui.html",
-                                "/v3/api-docs/**",
-                                "/v3/api-docs",
-                                "/swagger-resources/**",
-                                "/swagger-resources",
-                                "/configuration/ui",
-                                "/configuration/security",
-                                "/webjars/**",
-
-                                // Otros (opcional)
-                                "/favicon.ico",
-                                "/error"
+                                "/v3/api-docs/**"
                         ).permitAll()
 
-                        // Todas las demás rutas requieren autenticación
+                        // 🔒 TODO LO DEMÁS
                         .anyRequest().authenticated()
                 )
-                .sessionManagement(session -> session
-                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+
+                .sessionManagement(session ->
+                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
+
                 .authenticationProvider(authenticationProvider())
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
