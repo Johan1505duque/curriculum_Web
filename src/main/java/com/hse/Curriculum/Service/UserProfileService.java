@@ -4,6 +4,7 @@ import com.hse.Curriculum.Dto.ProfileDTO.PerfileRegisterDTO;
 import com.hse.Curriculum.Dto.ProfileDTO.ProfileResponseDTO;
 import com.hse.Curriculum.Dto.ProfileDTO.ProfileUpdateDTO;
 import com.hse.Curriculum.Dto.ProfileDTO.UserProfileDTO;
+import com.hse.Curriculum.Dto.ProfileDTO.ProfessionalProfileResponseDTO;
 
 import com.hse.Curriculum.Exception.Profile.DuplicateDocumentException;
 import com.hse.Curriculum.Exception.Profile.ProfileNotFoundException;
@@ -16,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
+import java.util.Objects;
 
 @Service
 public class UserProfileService {
@@ -179,10 +181,87 @@ public class UserProfileService {
         response.setPhoneNumber(savedProfile.getPhoneNumber());
         response.setResidentialAddress(savedProfile.getResidentialAddress());
         response.setBirthDate(savedProfile.getBirthDate());
+        response.setMessage("Usuario y perfil registrados correctamente");
 
         System.out.println("🎉 Registro completo exitoso para: " +
                 savedUser.getFirstName() + " " + savedUser.getLastName());
 
         return response;
+    }
+
+    @Transactional
+    public ProfileResponseDTO patchCompleteProfile(Integer userId, ProfileUpdateDTO updateDTO) {
+
+        Users user = usersRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+
+        Profiles profile = profilesRepository.findByUser_UserId(userId)
+                .orElseThrow(() -> new ProfileNotFoundException(userId));
+
+        // USERS (solo si vienen)
+        if (updateDTO.getFirstName() != null) {
+            user.setFirstName(updateDTO.getFirstName());
+        }
+
+        if (updateDTO.getLastName() != null) {
+            user.setLastName(updateDTO.getLastName());
+        }
+
+        usersRepository.save(user);
+
+        // PROFILES (solo si vienen)
+        if (updateDTO.getDocumentType() != null) {
+            profile.setDocumentType(updateDTO.getDocumentType());
+        }
+
+        if (updateDTO.getDocumentNumber() != null &&
+                !Objects.equals(profile.getDocumentNumber(), updateDTO.getDocumentNumber())) {
+
+            if (profilesRepository.existsByDocumentNumber(updateDTO.getDocumentNumber())) {
+                throw new DuplicateDocumentException(updateDTO.getDocumentNumber());
+            }
+
+            profile.setDocumentNumber(updateDTO.getDocumentNumber());
+        }
+
+        if (updateDTO.getPhoneNumber() != null) {
+            profile.setPhoneNumber(updateDTO.getPhoneNumber());
+        }
+
+        if (updateDTO.getResidentialAddress() != null) {
+            profile.setResidentialAddress(updateDTO.getResidentialAddress());
+        }
+
+        if (updateDTO.getBirthDate() != null) {
+            profile.setBirthDate(updateDTO.getBirthDate());
+        }
+
+        profilesRepository.save(profile);
+
+        ProfileResponseDTO response = new ProfileResponseDTO();
+        response.setUserId(user.getUserId());
+        response.setFirstName(user.getFirstName());
+        response.setLastName(user.getLastName());
+        response.setEmail(user.getEmail());
+        response.setDocumentType(profile.getDocumentType());
+        response.setDocumentNumber(profile.getDocumentNumber());
+        response.setPhoneNumber(profile.getPhoneNumber());
+        response.setResidentialAddress(profile.getResidentialAddress());
+        response.setBirthDate(profile.getBirthDate());
+
+        return response;
+    }
+
+    @Transactional(readOnly = true)
+    public ProfessionalProfileResponseDTO getProfessionalInfo(Integer userId) {
+
+        Profiles profile = profilesRepository.findByUser_UserId(userId)
+                .orElseThrow(() -> new ProfileNotFoundException(userId));
+
+        ProfessionalProfileResponseDTO dto = new ProfessionalProfileResponseDTO();
+        dto.setProfessionalSummary(profile.getProfessionalSummary());
+        dto.setCareerAchievements(profile.getCareerAchievements());
+
+        return dto;
     }
 }

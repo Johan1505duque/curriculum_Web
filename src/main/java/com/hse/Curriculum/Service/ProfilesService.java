@@ -68,9 +68,11 @@ public class ProfilesService {
 
         return savedProfile;
     }
+
     /**
      * Actualizar información profesional del perfil
      */
+
     @Transactional
     public void updateProfessionalInfo(
             Integer userId,
@@ -92,6 +94,7 @@ public class ProfilesService {
     /**
      * Eliminar perfil
      */
+
     @Transactional
     public void deleteProfile(Integer userId) {
         Profiles profile = profilesRepository.findByUser_UserId(userId)

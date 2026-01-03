@@ -2,9 +2,7 @@ package com.hse.Curriculum.Dto.ProfileDTO;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-import java.time.LocalDate;
-
-public class ProfessionalProfileUpdateDTO {
+public class ProfessionalProfileResponseDTO {
 
     // Campos opcionales del complemento
     @Schema(description = "Resumen profesional")
@@ -13,9 +11,10 @@ public class ProfessionalProfileUpdateDTO {
     @Schema(description = "Logros profesionales")
     private String careerAchievements;
 
-    public ProfessionalProfileUpdateDTO() {}
+    public   ProfessionalProfileResponseDTO() {}
 
-    public ProfessionalProfileUpdateDTO(String professionalSummary, String careerAchievements) {
+    public ProfessionalProfileResponseDTO(String professionalSummary, String careerAchievements){
+
         this.professionalSummary = professionalSummary;
         this.careerAchievements = careerAchievements;
     }
@@ -30,4 +29,5 @@ public class ProfessionalProfileUpdateDTO {
     public void setCareerAchievements(String careerAchievements) {
         this.careerAchievements = careerAchievements;
     }
+
 }

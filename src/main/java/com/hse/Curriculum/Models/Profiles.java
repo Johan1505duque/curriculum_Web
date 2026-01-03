@@ -160,7 +160,7 @@ public class Profiles {
         this.birthDate = birthDate;
     }
 
-    public String setProfessionalSummary() {
+    public String getProfessionalSummary() {
         return professionalSummary;
     }
 

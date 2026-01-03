@@ -25,7 +25,6 @@ import java.util.Map;
 @RestController
 @RequestMapping("profiles")
 @Tag(name = "Profiles", description = "Gestión de perfiles de usuario")
-//@CrossOrigin(origins = "*")
 @RequiredArgsConstructor
 public class ProfilesController {
 
@@ -37,6 +36,7 @@ public class ProfilesController {
     /**
      * POST - Registrar usuario con perfil completo
      */
+
     @PostMapping("/complete")
     @Operation(
             summary = "Registro completo de usuario",
@@ -97,11 +97,12 @@ public class ProfilesController {
     /**
      * PUT - Actualizar datos completos
      */
+
     @SecurityRequirement(name = "bearerAuth")
-    @PutMapping("/{userId}/complete")
+    @PatchMapping("/{userId}/complete")
     @Operation(
-            summary = "Actualizar usuario y perfil completo",
-            description = "Actualiza nombre, apellido y datos del perfil. Email NO modificable."
+            summary = "Actualizar usuario y perfil (parcial)",
+            description = "Actualiza solo los campos enviados del usuario y perfil. Email NO modificable."
     )
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Actualizado exitosamente"),
@@ -112,7 +113,7 @@ public class ProfilesController {
     public ResponseEntity<?> updateCompleteProfile(
             @Parameter(description = "ID del usuario", example = "1")
             @PathVariable Integer userId,
-            @Valid @RequestBody ProfileUpdateDTO updateDTO,
+            @RequestBody ProfileUpdateDTO updateDTO,
             HttpServletRequest request) {
         try {
             // Verificar autorización
@@ -130,7 +131,7 @@ public class ProfilesController {
 
             // Actualizar perfil
             ProfileResponseDTO response =
-                    userProfileService.updateCompleteProfile(userId, updateDTO);
+                    userProfileService.patchCompleteProfile(userId, updateDTO);
 
             // Registrar actualización en auditoría
             auditService.logAction(
@@ -165,6 +166,7 @@ public class ProfilesController {
     /**
      * GET - Obtener información completa
      */
+
     @SecurityRequirement(name = "bearerAuth")
     @GetMapping("/{userId}/complete")
     @Operation(summary = "Obtener información completa del usuario",
@@ -189,6 +191,7 @@ public class ProfilesController {
     /**
      * ACTUALIZAR información profesional del perfil
      */
+
     @SecurityRequirement(name = "bearerAuth")
     @PatchMapping("/user/{userId}/professional-info")
     @Operation(
@@ -202,6 +205,7 @@ public class ProfilesController {
             @ApiResponse(responseCode = "403", description = "No autorizado"),
             @ApiResponse(responseCode = "400", description = "Datos inválidos")
     })
+
     public ResponseEntity<?> updateProfessionalInfo(
             @Parameter(description = "ID del usuario", example = "1")
             @PathVariable Integer userId,
@@ -233,7 +237,7 @@ public class ProfilesController {
                     "profiles",
                     profile.getProfilesId(),
                     AuditLog.AuditAction.UPDATE,
-                    Map.of("summary", profile.setProfessionalSummary(),
+                    Map.of("summary", profile.getProfessionalSummary(),
                             "achievements", profile.getCareerAchievements()),
                     dto,
                     "Actualización de información profesional",
@@ -241,6 +245,47 @@ public class ProfilesController {
             );
 
             return ResponseEntity.noContent().build();
+
+        } catch (ProfileNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    /**
+     * OBTENER información profesional del perfil
+     */
+    @SecurityRequirement(name = "bearerAuth")
+    @GetMapping("/user/{userId}/professional-info")
+    @Operation(
+            summary = "Obtener información profesional",
+            description = "Obtiene el resumen y los logros profesionales del perfil"
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Información profesional obtenida"),
+            @ApiResponse(responseCode = "404", description = "Perfil no encontrado"),
+            @ApiResponse(responseCode = "403", description = "No autorizado")
+    })
+    public ResponseEntity<?> getProfessionalInfo(
+            @Parameter(description = "ID del usuario", example = "1")
+            @PathVariable Integer userId
+    ) {
+        try {
+            // Verificar autorización
+            String authenticatedEmail = getAuthenticatedUserEmail();
+            var authenticatedUser = usersService.findByEmail(authenticatedEmail)
+                    .orElseThrow(() -> new RuntimeException("Usuario autenticado no encontrado"));
+
+            if (!authenticatedUser.getUserId().equals(userId)) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                        .body(Map.of("error", "No autorizado"));
+            }
+
+            // Obtener información profesional
+            ProfessionalProfileResponseDTO response =
+                    userProfileService.getProfessionalInfo(userId);
+
+            return ResponseEntity.ok(response);
 
         } catch (ProfileNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
