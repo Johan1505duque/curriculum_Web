@@ -25,7 +25,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("profiles")
 @Tag(name = "Profiles", description = "Gestión de perfiles de usuario")
-@CrossOrigin(origins = "*")
+//@CrossOrigin(origins = "*")
 @RequiredArgsConstructor
 public class ProfilesController {
 
@@ -36,7 +36,6 @@ public class ProfilesController {
 
     /**
      * POST - Registrar usuario con perfil completo
-     * NO REQUIERE AUTENTICACIÓN
      */
     @PostMapping("/complete")
     @Operation(
@@ -97,14 +96,13 @@ public class ProfilesController {
 
     /**
      * PUT - Actualizar datos completos
-     * REQUIERE AUTENTICACIÓN
      */
+    @SecurityRequirement(name = "bearerAuth")
     @PutMapping("/{userId}/complete")
     @Operation(
             summary = "Actualizar usuario y perfil completo",
             description = "Actualiza nombre, apellido y datos del perfil. Email NO modificable."
     )
-    @SecurityRequirement(name = "Bearer Authentication")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Actualizado exitosamente"),
             @ApiResponse(responseCode = "404", description = "Usuario o perfil no encontrado"),
@@ -166,12 +164,11 @@ public class ProfilesController {
 
     /**
      * GET - Obtener información completa
-     * REQUIERE AUTENTICACIÓN
      */
+    @SecurityRequirement(name = "bearerAuth")
     @GetMapping("/{userId}/complete")
     @Operation(summary = "Obtener información completa del usuario",
             description = "Retorna datos de usuario y perfil combinados")
-    @SecurityRequirement(name = "Bearer Authentication")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Información obtenida"),
             @ApiResponse(responseCode = "404", description = "Usuario no encontrado")
@@ -191,14 +188,14 @@ public class ProfilesController {
 
     /**
      * ACTUALIZAR información profesional del perfil
-     * REQUIERE AUTENTICACIÓN
      */
+    @SecurityRequirement(name = "bearerAuth")
     @PatchMapping("/user/{userId}/professional-info")
     @Operation(
             summary = "Actualizar información profesional",
             description = "Actualiza únicamente el resumen y los logros profesionales del perfil"
     )
-    @SecurityRequirement(name = "Bearer Authentication")
+
     @ApiResponses(value = {
             @ApiResponse(responseCode = "204", description = "Información profesional actualizada"),
             @ApiResponse(responseCode = "404", description = "Perfil no encontrado"),
@@ -253,12 +250,11 @@ public class ProfilesController {
 
     /**
      * ELIMINAR perfil
-     * REQUIERE AUTENTICACIÓN
      */
+    @SecurityRequirement(name = "bearerAuth")
     @DeleteMapping("/user/{userId}")
     @Operation(summary = "Eliminar perfil de usuario",
             description = "Elimina el perfil de un usuario")
-    @SecurityRequirement(name = "Bearer Authentication")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "204", description = "Perfil eliminado exitosamente"),
             @ApiResponse(responseCode = "404", description = "Perfil no encontrado"),

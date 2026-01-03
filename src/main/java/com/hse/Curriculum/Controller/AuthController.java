@@ -30,7 +30,6 @@ import java.util.Map;
 @RestController
 @RequestMapping("/auth")
 @Tag(name = "Authentication")
-@CrossOrigin(origins = "*")
 @RequiredArgsConstructor
 public class AuthController {
 
@@ -45,7 +44,8 @@ public class AuthController {
     @PostMapping("/login")
     @Operation(
             summary = "Login de usuario",
-            description = "Autentica un usuario con email y contraseña, retorna tokens JWT"
+            description = "Autentica un usuario con email y contraseña, retorna tokens JWT",
+    security = {}
     )
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Autenticación exitosa, tokens generados"),
@@ -173,7 +173,7 @@ public class AuthController {
             summary = "Cambiar contraseña",
             description = "Permite a un usuario autenticado cambiar su contraseña"
     )
-    @SecurityRequirement(name = "Bearer Authentication")
+    @SecurityRequirement(name = "bearerAuth")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Contraseña actualizada exitosamente"),
             @ApiResponse(responseCode = "400", description = "Contraseña actual incorrecta"),
@@ -227,12 +227,12 @@ public class AuthController {
     /**
      * Logout - Registra el cierre de sesión
      */
+    @SecurityRequirement(name = "bearerAuth")
     @PostMapping("/logout")
     @Operation(
             summary = "Cerrar sesión",
             description = "Registra el cierre de sesión del usuario"
     )
-    @SecurityRequirement(name = "Bearer Authentication")
     @ApiResponse(responseCode = "200", description = "Sesión cerrada exitosamente")
     public ResponseEntity<String> logout(HttpServletRequest request) {
 

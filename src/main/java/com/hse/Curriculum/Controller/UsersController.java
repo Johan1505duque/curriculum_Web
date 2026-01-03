@@ -16,6 +16,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -31,17 +32,14 @@ import java.util.Optional;
 @RestController
 @RequestMapping("users")
 @Tag(name = "Gestión de Usuarios", description = "Endpoints para crear y consultar usuarios")
-@CrossOrigin(origins = "*")
-@RequiredArgsConstructor // ⭐ Esto genera automáticamente el constructor con todos los "final"
+//@CrossOrigin(origins = "*")
+@RequiredArgsConstructor
 public class UsersController {
 
     // ✅ CORRECTO: Con @RequiredArgsConstructor, estos se inyectan automáticamente
     private final UsersService usersService;
     private final AuditService auditService;
     private final ProfilesService profilesService; // ⭐ Nombre consistente
-
-    // ❌ NO NECESITAS ESTE CONSTRUCTOR - Lombok lo genera automáticamente
-    // Si quieres hacerlo manual, ELIMINA @RequiredArgsConstructor
 
     /**
      * POST - Registrar usuario básico con perfil automático
@@ -62,11 +60,12 @@ public class UsersController {
             HttpServletRequest request
     ) {
         try {
+
             // 1. Registrar usuario
             Users user = usersService.register(signUpDTO);
 
             // 2. Crear perfil vacío automáticamente
-            // ✅ CORRECTO: profilesService con 's' y p minúscula (instancia, no estático)
+
             Profiles profile = profilesService.createEmptyProfileForUser(user.getUserId());
             // 3. Registrar en auditoría
             auditService.logAction(
@@ -78,7 +77,7 @@ public class UsersController {
                     AuditLog.AuditAction.INSERT,
                     null,
                     user,
-                    "Registro de nuevo usuario con perfil inicial (ID: " + profile.getProfilesId() + ")",
+                    "Se a registrado de nuevo usuario ",
                     request
             );
 
@@ -102,7 +101,7 @@ public class UsersController {
                     user.getEmail(),
                     user.getFirstName(),
                     user.getLastName(),
-                    "Usuario registrado exitosamente. Perfil creado con ID: " + profile.getProfilesId()
+                    "Usuario registrado exitosamente."
             );
 
             return ResponseEntity.status(HttpStatus.CREATED).body(response);
@@ -129,10 +128,11 @@ public class UsersController {
      * OBTENER usuario por ID
      * REQUIERE AUTENTICACIÓN
      */
+    @SecurityRequirement(name = "bearerAuth")
     @GetMapping("/{id}")
     @Operation(summary = "Obtener usuario por ID",
             description = "Busca un usuario específico por su ID")
-    @SecurityRequirement(name = "Bearer Authentication")
+
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Usuario encontrado"),
             @ApiResponse(responseCode = "404", description = "Usuario no encontrado"),
@@ -151,10 +151,11 @@ public class UsersController {
      * DESHABILITAR usuario (soft delete)
      * REQUIERE AUTENTICACIÓN
      */
+    @SecurityRequirement(name = "bearerAuth")
     @PatchMapping("/{id}/disable")
     @Operation(summary = "Deshabilitar usuario",
             description = "Deshabilita un usuario del sistema sin eliminarlo permanentemente")
-    @SecurityRequirement(name = "Bearer Authentication")
+
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Usuario deshabilitado exitosamente"),
             @ApiResponse(responseCode = "404", description = "Usuario no encontrado"),
@@ -215,10 +216,11 @@ public class UsersController {
      * HABILITAR usuario
      * REQUIERE AUTENTICACIÓN
      */
+    @SecurityRequirement(name = "bearerAuth")
     @PatchMapping("/{id}/enable")
     @Operation(summary = "Habilitar usuario",
             description = "Reactiva un usuario deshabilitado")
-    @SecurityRequirement(name = "Bearer Authentication")
+
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Usuario habilitado exitosamente"),
             @ApiResponse(responseCode = "404", description = "Usuario no encontrado"),
