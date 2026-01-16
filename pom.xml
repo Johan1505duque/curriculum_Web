@@ -84,13 +84,6 @@
             <scope>provided</scope>
         </dependency>
 
-        <!-- Argon2-->
-        <dependency>
-            <groupId>org.bouncycastle</groupId>
-            <artifactId>bcprov-jdk18on</artifactId>
-            <version>1.78</version>
-        </dependency>
-
         <!-- Bouncy Castle-->
         <dependency>
             <groupId>org.bouncycastle</groupId>

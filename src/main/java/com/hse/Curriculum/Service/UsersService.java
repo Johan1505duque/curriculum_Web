@@ -1,28 +1,55 @@
 package com.hse.Curriculum.Service;
 
+import com.hse.Curriculum.Exception.Users.UserNotFoundException;
 import com.hse.Curriculum.Repository.UsersRepository;
 import com.hse.Curriculum.Models.Users;
 import com.hse.Curriculum.Dto.UserDTO.UserSignUpDTO;
-import com.hse.Curriculum.Dto.UserDTO.UserResponseDTO;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.hse.Curriculum.Exception.Login.*;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDate;
 import java.util.Optional;
 
 @Service
+@RequiredArgsConstructor  // ⭐ Lombok genera el constructor automáticamente
 public class UsersService {
 
+    // ✅ TODAS las dependencias se inyectan por constructor (gracias a @RequiredArgsConstructor)
     private final UsersRepository usersRepository;
+    private final PasswordValidator passwordValidator;
+    private final PasswordEncoder passwordEncoder;
 
-    @Autowired
-    private PasswordEncoder passwordEncoder;
+    /**
+     * Registro inicial - Solo datos básicos
 
+     */
+    @Transactional
+    public Users register(UserSignUpDTO signUpDTO) {
 
-    public UsersService(UsersRepository usersRepository) {
-        this.usersRepository = usersRepository;
+        // 1. ✅ VALIDAR QUE EL EMAIL NO ESTÉ DUPLICADO
+        if (usersRepository.existsByEmail(signUpDTO.getEmail())) {
+            throw new DuplicateEmailException(signUpDTO.getEmail());
+        }
+
+        // 2. ✅ VALIDAR FORTALEZA DE LA CONTRASEÑA
+        passwordValidator.validatePassword(
+                signUpDTO.getPassword(),
+                signUpDTO.getFirstName(),
+                signUpDTO.getLastName()
+        );
+
+        // 3. Crear el usuario
+        Users user = new Users();
+        user.setFirstName(signUpDTO.getFirstName());
+        user.setLastName(signUpDTO.getLastName());
+        user.setEmail(signUpDTO.getEmail().toLowerCase());
+        user.setPassword(passwordEncoder.encode(signUpDTO.getPassword()));
+        user.setStatus(true);
+
+        // 4. Guardar en la base de datos
+        return usersRepository.save(user);
     }
 
     /**
@@ -40,6 +67,7 @@ public class UsersService {
 
         return user;
     }
+
     /**
      * Buscar usuario por email
      */
@@ -53,29 +81,7 @@ public class UsersService {
      */
     public Users getById(Integer userId) {
         return usersRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
-    }
-
-
-
-    /**
-     * Registro inicial - Solo datos básicos
-     */
-    @Transactional
-    public Users register(UserSignUpDTO signUpDTO) {
-
-        if (usersRepository.existsByEmail(signUpDTO.getEmail())) {
-            throw new RuntimeException("El email ya está registrado");
-        }
-
-        Users user = new Users();
-        user.setFirstName(signUpDTO.getFirstName());
-        user.setLastName(signUpDTO.getLastName());
-        user.setEmail(signUpDTO.getEmail().toLowerCase());
-        user.setPassword(passwordEncoder.encode(signUpDTO.getPassword()));
-        user.setStatus(true);
-
-        return usersRepository.save(user);
+                .orElseThrow(() -> new UserNotFoundException(userId));
     }
 
     /**
@@ -86,7 +92,7 @@ public class UsersService {
         System.out.println("🔄 Actualizando usuario ID: " + user.getUserId());
 
         if (!usersRepository.existsById(user.getUserId())) {
-            throw new RuntimeException("Usuario no encontrado");
+            throw new UserNotFoundException(user.getUserId());
         }
 
         return usersRepository.save(user);
@@ -100,7 +106,7 @@ public class UsersService {
         System.out.println("🔄 Deshabilitando usuario ID: " + userId);
 
         Users user = usersRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+                .orElseThrow(() -> new UserNotFoundException(userId));
 
         user.setStatus(false);
         usersRepository.save(user);
@@ -116,7 +122,7 @@ public class UsersService {
         System.out.println("🔄 Habilitando usuario ID: " + userId);
 
         Users user = usersRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+                .orElseThrow(() -> new UserNotFoundException(userId));
 
         user.setStatus(true);
         usersRepository.save(user);
