@@ -1,4 +1,6 @@
-package com.hse.Curriculum.Exception.Login;
+package com.hse.Curriculum.Exception.Users;
+
+import com.hse.Curriculum.Exception.Login.BusinessException;
 
 public class UserNotFoundException extends BusinessException {
     public UserNotFoundException(Integer userId) {

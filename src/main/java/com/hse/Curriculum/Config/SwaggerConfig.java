@@ -35,7 +35,7 @@ public class SwaggerConfig {
                 // 1️⃣ LOCALHOST → Swagger SIEMPRE aquí
                 servers.add(new Server()
                         .url("http://localhost:8080")
-                        .description("💻 Local (Swagger recomendado)")
+                        .description("💻 Local (Swagger)")
                 );
             }
 

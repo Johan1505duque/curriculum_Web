@@ -1,0 +1,41 @@
+-- Crear ENUM para tipo de educación
+CREATE TYPE education_type AS ENUM ('primaria', 'media', 'superior');
+
+-- Crear ENUM para estado de graduación
+CREATE TYPE graduate_status_enum AS ENUM ('no', 'en_curso', 'graduado');
+
+CREATE TABLE education (
+  education_id SERIAL PRIMARY KEY,
+  user_id INTEGER NOT NULL,
+  type_education education_type NOT NULL,
+  academic_level VARCHAR(100) NOT NULL,
+  institution_name VARCHAR(255) NOT NULL,
+  degree_title VARCHAR(255),
+  country_code SMALLINT, 
+  graduate_status graduate_status_enum DEFAULT 'no',
+  last_level_completed VARCHAR(100), 
+  last_level_date DATE,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  
+  FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
+  FOREIGN KEY (country_code) REFERENCES countries(country_code)
+);
+
+-- Índices
+CREATE INDEX idx_education_user_type ON education(user_id, type_education);
+CREATE INDEX idx_education_status ON education(graduate_status);
+
+-- Trigger para updated_at automático
+CREATE OR REPLACE FUNCTION update_updated_at_column()
+RETURNS TRIGGER AS $$
+BEGIN
+  NEW.updated_at = CURRENT_TIMESTAMP;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER update_education_updated_at
+BEFORE UPDATE ON education
+FOR EACH ROW
+EXECUTE FUNCTION update_updated_at_column();

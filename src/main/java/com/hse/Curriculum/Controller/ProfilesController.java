@@ -1,6 +1,6 @@
 package com.hse.Curriculum.Controller;
 
-
+import com.hse.Curriculum.Dto.ApiResponseDTO;
 import com.hse.Curriculum.Dto.ProfileDTO.*;
 import com.hse.Curriculum.Exception.Profile.*;
 import com.hse.Curriculum.Models.AuditLog;
@@ -24,7 +24,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("profiles")
-@Tag(name = "Profiles", description = "Gestión de perfiles de usuario")
+@Tag(name = "Profiles Management", description = "Gestión de perfiles de usuario")
 @RequiredArgsConstructor
 public class ProfilesController {
 
@@ -36,7 +36,6 @@ public class ProfilesController {
     /**
      * POST - Registrar usuario con perfil completo
      */
-
     @PostMapping("/complete")
     @Operation(
             summary = "Registro completo de usuario",
@@ -47,7 +46,7 @@ public class ProfilesController {
             @ApiResponse(responseCode = "409", description = "Email o documento ya registrado"),
             @ApiResponse(responseCode = "400", description = "Datos inválidos")
     })
-    public ResponseEntity<?> registerComplete(
+    public ResponseEntity<ApiResponseDTO<ProfileResponseDTO>> registerComplete(
             @Valid @RequestBody PerfileRegisterDTO registrationDTO,
             HttpServletRequest request) {
         try {
@@ -68,36 +67,44 @@ public class ProfilesController {
                     request
             );
 
-            return ResponseEntity.status(HttpStatus.CREATED).body(response);
+            return ResponseEntity.status(HttpStatus.CREATED).body(
+                    ApiResponseDTO.success(
+                            "Usuario y perfil creados exitosamente",
+                            HttpStatus.CREATED.value(),
+                            response
+                    )
+            );
 
         } catch (DuplicateDocumentException e) {
-            return ResponseEntity.status(HttpStatus.CONFLICT)
-                    .body(Map.of(
-                            "error", "Documento duplicado",
-                            "message", e.getMessage()
-                    ));
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(
+                    ApiResponseDTO.error(
+                             e.getMessage(),
+                            HttpStatus.CONFLICT.value()
+                    )
+            );
 
         } catch (RuntimeException e) {
             if (e.getMessage().contains("email")) {
-                return ResponseEntity.status(HttpStatus.CONFLICT)
-                        .body(Map.of(
-                                "error", "Email duplicado",
-                                "message", e.getMessage()
-                        ));
+                return ResponseEntity.status(HttpStatus.CONFLICT).body(
+                        ApiResponseDTO.error(
+                                 e.getMessage(),
+                                HttpStatus.CONFLICT.value()
+                        )
+                );
             }
 
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(Map.of(
-                            "error", "Error en el registro",
-                            "message", e.getMessage()
-                    ));
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
+                    ApiResponseDTO.error(
+                            e.getMessage(),
+                            HttpStatus.BAD_REQUEST.value()
+                    )
+            );
         }
     }
 
     /**
      * PUT - Actualizar datos completos
      */
-
     @SecurityRequirement(name = "bearerAuth")
     @PatchMapping("/{userId}/complete")
     @Operation(
@@ -110,7 +117,7 @@ public class ProfilesController {
             @ApiResponse(responseCode = "409", description = "Documento duplicado"),
             @ApiResponse(responseCode = "403", description = "No autorizado")
     })
-    public ResponseEntity<?> updateCompleteProfile(
+    public ResponseEntity<ApiResponseDTO<ProfileResponseDTO>> updateCompleteProfile(
             @Parameter(description = "ID del usuario", example = "1")
             @PathVariable Integer userId,
             @RequestBody ProfileUpdateDTO updateDTO,
@@ -122,8 +129,12 @@ public class ProfilesController {
                     .orElseThrow(() -> new RuntimeException("Usuario autenticado no encontrado"));
 
             if (!authenticatedUser.getUserId().equals(userId)) {
-                return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                        .body(Map.of("error", "No autorizado para actualizar este perfil"));
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(
+                        ApiResponseDTO.error(
+                                "No autorizado para actualizar este perfil",
+                                HttpStatus.FORBIDDEN.value()
+                        )
+                );
             }
 
             // Obtener datos anteriores para auditoría
@@ -147,26 +158,43 @@ public class ProfilesController {
                     request
             );
 
-            return ResponseEntity.ok(response);
+            return ResponseEntity.ok(
+                    ApiResponseDTO.success(
+                            "Perfil actualizado exitosamente",
+                            HttpStatus.OK.value(),
+                            response
+                    )
+            );
 
         } catch (ProfileNotFoundException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(Map.of("error", "Perfil no encontrado", "message", e.getMessage()));
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+                    ApiResponseDTO.error(
+                            e.getMessage(),
+                            HttpStatus.NOT_FOUND.value()
+                    )
+            );
 
         } catch (DuplicateDocumentException e) {
-            return ResponseEntity.status(HttpStatus.CONFLICT)
-                    .body(Map.of("error", "Documento duplicado", "message", e.getMessage()));
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(
+                    ApiResponseDTO.error(
+                            e.getMessage(),
+                            HttpStatus.CONFLICT.value()
+                    )
+            );
 
         } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(Map.of("error", "Usuario no encontrado", "message", e.getMessage()));
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+                    ApiResponseDTO.error(
+                             e.getMessage(),
+                            HttpStatus.NOT_FOUND.value()
+                    )
+            );
         }
     }
 
     /**
      * GET - Obtener información completa
      */
-
     @SecurityRequirement(name = "bearerAuth")
     @GetMapping("/{userId}/complete")
     @Operation(summary = "Obtener información completa del usuario",
@@ -175,43 +203,49 @@ public class ProfilesController {
             @ApiResponse(responseCode = "200", description = "Información obtenida"),
             @ApiResponse(responseCode = "404", description = "Usuario no encontrado")
     })
-    public ResponseEntity<?> getUserProfile(
+    public ResponseEntity<ApiResponseDTO<UserProfileDTO>> getUserProfile(
             @Parameter(description = "ID del usuario", example = "1")
             @PathVariable Integer userId) {
         try {
             UserProfileDTO response = userProfileService.getUserProfile(userId);
-            return ResponseEntity.ok(response);
+            return ResponseEntity.ok(
+                    ApiResponseDTO.success(
+                            "Información de perfil obtenida exitosamente",
+                            HttpStatus.OK.value(),
+                            response
+                    )
+            );
 
         } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(Map.of("error", e.getMessage()));
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+                    ApiResponseDTO.error(
+                             e.getMessage(),
+                            HttpStatus.NOT_FOUND.value()
+                    )
+            );
         }
     }
 
     /**
      * ACTUALIZAR información profesional del perfil
      */
-
     @SecurityRequirement(name = "bearerAuth")
     @PatchMapping("/user/{userId}/professional-info")
     @Operation(
             summary = "Actualizar información profesional",
             description = "Actualiza únicamente el resumen y los logros profesionales del perfil"
     )
-
     @ApiResponses(value = {
             @ApiResponse(responseCode = "204", description = "Información profesional actualizada"),
             @ApiResponse(responseCode = "404", description = "Perfil no encontrado"),
             @ApiResponse(responseCode = "403", description = "No autorizado"),
             @ApiResponse(responseCode = "400", description = "Datos inválidos")
     })
-
-    public ResponseEntity<?> updateProfessionalInfo(
+    public ResponseEntity<ApiResponseDTO<Void>> updateProfessionalInfo(
             @Parameter(description = "ID del usuario", example = "1")
             @PathVariable Integer userId,
             @Valid @RequestBody ProfessionalProfileUpdateDTO dto,
-            HttpServletRequest request
-    ) {
+            HttpServletRequest request) {
         try {
             // Verificar autorización
             String authenticatedEmail = getAuthenticatedUserEmail();
@@ -219,8 +253,12 @@ public class ProfilesController {
                     .orElseThrow(() -> new RuntimeException("Usuario autenticado no encontrado"));
 
             if (!authenticatedUser.getUserId().equals(userId)) {
-                return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                        .body(Map.of("error", "No autorizado"));
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(
+                        ApiResponseDTO.error(
+                                "No autorizado",
+                                HttpStatus.FORBIDDEN.value()
+                        )
+                );
             }
 
             // Obtener perfil anterior
@@ -244,11 +282,28 @@ public class ProfilesController {
                     request
             );
 
-            return ResponseEntity.noContent().build();
+            return ResponseEntity.ok(
+                    ApiResponseDTO.success(
+                            "Información profesional actualizada exitosamente",
+                            HttpStatus.OK.value(),
+                            null
+                    )
+            );
 
         } catch (ProfileNotFoundException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(Map.of("error", e.getMessage()));
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+                    ApiResponseDTO.error(
+                            e.getMessage(),
+                            HttpStatus.NOT_FOUND.value()
+                    )
+            );
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
+                    ApiResponseDTO.error(
+                             e.getMessage(),
+                            HttpStatus.BAD_REQUEST.value()
+                    )
+            );
         }
     }
 
@@ -266,10 +321,9 @@ public class ProfilesController {
             @ApiResponse(responseCode = "404", description = "Perfil no encontrado"),
             @ApiResponse(responseCode = "403", description = "No autorizado")
     })
-    public ResponseEntity<?> getProfessionalInfo(
+    public ResponseEntity<ApiResponseDTO<ProfessionalProfileResponseDTO>> getProfessionalInfo(
             @Parameter(description = "ID del usuario", example = "1")
-            @PathVariable Integer userId
-    ) {
+            @PathVariable Integer userId) {
         try {
             // Verificar autorización
             String authenticatedEmail = getAuthenticatedUserEmail();
@@ -277,19 +331,40 @@ public class ProfilesController {
                     .orElseThrow(() -> new RuntimeException("Usuario autenticado no encontrado"));
 
             if (!authenticatedUser.getUserId().equals(userId)) {
-                return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                        .body(Map.of("error", "No autorizado"));
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(
+                        ApiResponseDTO.error(
+                                "No autorizado",
+                                HttpStatus.FORBIDDEN.value()
+                        )
+                );
             }
 
             // Obtener información profesional
             ProfessionalProfileResponseDTO response =
                     userProfileService.getProfessionalInfo(userId);
 
-            return ResponseEntity.ok(response);
+            return ResponseEntity.ok(
+                    ApiResponseDTO.success(
+                            "Información profesional obtenida exitosamente",
+                            HttpStatus.OK.value(),
+                            response
+                    )
+            );
 
         } catch (ProfileNotFoundException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(Map.of("error", e.getMessage()));
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+                    ApiResponseDTO.error(
+                             e.getMessage(),
+                            HttpStatus.NOT_FOUND.value()
+                    )
+            );
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
+                    ApiResponseDTO.error(
+                            e.getMessage(),
+                            HttpStatus.BAD_REQUEST.value()
+                    )
+            );
         }
     }
 
@@ -305,7 +380,7 @@ public class ProfilesController {
             @ApiResponse(responseCode = "404", description = "Perfil no encontrado"),
             @ApiResponse(responseCode = "403", description = "No autorizado")
     })
-    public ResponseEntity<?> deleteProfile(
+    public ResponseEntity<ApiResponseDTO<Void>> deleteProfile(
             @Parameter(description = "ID del usuario", example = "1")
             @PathVariable Integer userId,
             HttpServletRequest request) {
@@ -316,8 +391,12 @@ public class ProfilesController {
                     .orElseThrow(() -> new RuntimeException("Usuario autenticado no encontrado"));
 
             if (!authenticatedUser.getUserId().equals(userId)) {
-                return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                        .body(Map.of("error", "No autorizado"));
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(
+                        ApiResponseDTO.error(
+                                "No autorizado",
+                                HttpStatus.FORBIDDEN.value()
+                        )
+                );
             }
 
             // Obtener perfil antes de eliminar
@@ -340,11 +419,28 @@ public class ProfilesController {
                     request
             );
 
-            return ResponseEntity.noContent().build();
+            return ResponseEntity.ok(
+                    ApiResponseDTO.success(
+                            "Perfil eliminado exitosamente",
+                            HttpStatus.OK.value(),
+                            null
+                    )
+            );
 
         } catch (ProfileNotFoundException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(Map.of("error", e.getMessage()));
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+                    ApiResponseDTO.error(
+                            e.getMessage(),
+                            HttpStatus.NOT_FOUND.value()
+                    )
+            );
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
+                    ApiResponseDTO.error(
+                            e.getMessage(),
+                            HttpStatus.BAD_REQUEST.value()
+                    )
+            );
         }
     }
 

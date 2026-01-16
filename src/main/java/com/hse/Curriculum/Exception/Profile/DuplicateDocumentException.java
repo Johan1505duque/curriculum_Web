@@ -1,8 +1,9 @@
 package com.hse.Curriculum.Exception.Profile;
 
-public class DuplicateDocumentException extends RuntimeException {
+import com.hse.Curriculum.Exception.Login.BusinessException;
+
+public class DuplicateDocumentException extends BusinessException {
     public DuplicateDocumentException(String documentNumber) {
         super("El número de documento " + documentNumber + " ya está registrado");
     }
-
 }

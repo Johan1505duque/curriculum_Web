@@ -1,7 +1,6 @@
 package com.hse.Curriculum.Controller;
 
-
-import com.hse.Curriculum.Dto.ProfileDTO.ProfileResponseDTO;
+import com.hse.Curriculum.Dto.ApiResponseDTO;
 import com.hse.Curriculum.Models.AuditLog;
 import com.hse.Curriculum.Models.Users;
 import com.hse.Curriculum.Models.Profiles;
@@ -16,7 +15,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -25,21 +23,18 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.http.HttpStatus;
 import jakarta.validation.Valid;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
 @RestController
 @RequestMapping("users")
-@Tag(name = "Gestión de Usuarios", description = "Endpoints para crear y consultar usuarios")
-//@CrossOrigin(origins = "*")
+@Tag(name = "User Management", description = "Endpoints para crear y consultar usuarios")
 @RequiredArgsConstructor
 public class UsersController {
 
-    // ✅ CORRECTO: Con @RequiredArgsConstructor, estos se inyectan automáticamente
     private final UsersService usersService;
     private final AuditService auditService;
-    private final ProfilesService profilesService; // ⭐ Nombre consistente
+    private final ProfilesService profilesService;
 
     /**
      * POST - Registrar usuario básico con perfil automático
@@ -55,18 +50,16 @@ public class UsersController {
             @ApiResponse(responseCode = "400", description = "Datos inválidos"),
             @ApiResponse(responseCode = "409", description = "Email ya registrado")
     })
-    public ResponseEntity<?> register(
+    public ResponseEntity<ApiResponseDTO<UserSignUpDTO>> register(
             @Valid @RequestBody UserSignUpDTO signUpDTO,
-            HttpServletRequest request
-    ) {
+            HttpServletRequest request) {
         try {
-
             // 1. Registrar usuario
             Users user = usersService.register(signUpDTO);
 
             // 2. Crear perfil vacío automáticamente
-
             Profiles profile = profilesService.createEmptyProfileForUser(user.getUserId());
+
             // 3. Registrar en auditoría
             auditService.logAction(
                     user.getUserId(),
@@ -77,7 +70,7 @@ public class UsersController {
                     AuditLog.AuditAction.INSERT,
                     null,
                     user,
-                    "Se a registrado de nuevo usuario ",
+                    "Se ha registrado un nuevo usuario",
                     request
             );
 
@@ -104,65 +97,84 @@ public class UsersController {
                     "Usuario registrado exitosamente."
             );
 
-            return ResponseEntity.status(HttpStatus.CREATED).body(response);
+            return ResponseEntity.status(HttpStatus.CREATED).body(
+                    ApiResponseDTO.success(
+                            "Usuario registrado exitosamente",
+                            HttpStatus.CREATED.value(),
+                            response
+                    )
+            );
 
         } catch (RuntimeException e) {
             // Manejar email duplicado u otros errores
             if (e.getMessage() != null && e.getMessage().contains("email")) {
-                return ResponseEntity.status(HttpStatus.CONFLICT)
-                        .body(Map.of(
-                                "error", "Email ya registrado",
-                                "message", e.getMessage()
-                        ));
+                return ResponseEntity.status(HttpStatus.CONFLICT).body(
+                        ApiResponseDTO.error(
+                                e.getMessage(),
+                                HttpStatus.CONFLICT.value()
+                        )
+                );
             }
 
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(Map.of(
-                            "error", "Error en el registro",
-                            "message", e.getMessage()
-                    ));
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
+                    ApiResponseDTO.error(
+                            e.getMessage(),
+                            HttpStatus.BAD_REQUEST.value()
+                    )
+            );
         }
     }
 
     /**
      * OBTENER usuario por ID
-     * REQUIERE AUTENTICACIÓN
      */
     @SecurityRequirement(name = "bearerAuth")
     @GetMapping("/{id}")
     @Operation(summary = "Obtener usuario por ID",
             description = "Busca un usuario específico por su ID")
-
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Usuario encontrado"),
             @ApiResponse(responseCode = "404", description = "Usuario no encontrado"),
             @ApiResponse(responseCode = "401", description = "No autenticado")
     })
-    public ResponseEntity<Users> getUserById(
+    public ResponseEntity<ApiResponseDTO<Users>> getUserById(
             @Parameter(description = "ID del usuario", example = "1")
             @PathVariable Integer id) {
 
         Optional<Users> user = usersService.findById(id);
-        return user.map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+
+        if (user.isPresent()) {
+            return ResponseEntity.ok(
+                    ApiResponseDTO.success(
+                            "Usuario encontrado",
+                            HttpStatus.OK.value(),
+                            user.get()
+                    )
+            );
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+                    ApiResponseDTO.error(
+                            "Usuario no encontrado",
+                            HttpStatus.NOT_FOUND.value()
+                    )
+            );
+        }
     }
 
     /**
      * DESHABILITAR usuario (soft delete)
-     * REQUIERE AUTENTICACIÓN
      */
     @SecurityRequirement(name = "bearerAuth")
     @PatchMapping("/{id}/disable")
     @Operation(summary = "Deshabilitar usuario",
             description = "Deshabilita un usuario del sistema sin eliminarlo permanentemente")
-
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Usuario deshabilitado exitosamente"),
             @ApiResponse(responseCode = "404", description = "Usuario no encontrado"),
             @ApiResponse(responseCode = "401", description = "No autenticado"),
             @ApiResponse(responseCode = "403", description = "No autorizado")
     })
-    public ResponseEntity<?> disableUser(
+    public ResponseEntity<ApiResponseDTO<Void>> disableUser(
             @Parameter(description = "ID del usuario", example = "1")
             @PathVariable Integer id,
             HttpServletRequest request) {
@@ -178,10 +190,13 @@ public class UsersController {
                     .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
 
             // Verificar que solo pueda deshabilitar su propia cuenta
-            // (O implementar lógica de roles/admin aquí)
             if (!authenticatedUser.getUserId().equals(id)) {
-                return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                        .body(Map.of("error", "No autorizado para deshabilitar este usuario"));
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(
+                        ApiResponseDTO.error(
+                                "No autorizado para deshabilitar este usuario",
+                                HttpStatus.FORBIDDEN.value()
+                        )
+                );
             }
 
             // Deshabilitar
@@ -201,33 +216,38 @@ public class UsersController {
                     request
             );
 
-            Map<String, String> response = new HashMap<>();
-            response.put("message", "Usuario deshabilitado exitosamente");
-            return ResponseEntity.ok(response);
+            return ResponseEntity.ok(
+                    ApiResponseDTO.success(
+                            "Usuario deshabilitado exitosamente",
+                            HttpStatus.OK.value(),
+                            null
+                    )
+            );
 
         } catch (RuntimeException e) {
-            Map<String, String> error = new HashMap<>();
-            error.put("error", e.getMessage());
-            return ResponseEntity.badRequest().body(error);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
+                    ApiResponseDTO.error(
+                             e.getMessage(),
+                            HttpStatus.BAD_REQUEST.value()
+                    )
+            );
         }
     }
 
     /**
      * HABILITAR usuario
-     * REQUIERE AUTENTICACIÓN
      */
     @SecurityRequirement(name = "bearerAuth")
     @PatchMapping("/{id}/enable")
     @Operation(summary = "Habilitar usuario",
             description = "Reactiva un usuario deshabilitado")
-
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Usuario habilitado exitosamente"),
             @ApiResponse(responseCode = "404", description = "Usuario no encontrado"),
             @ApiResponse(responseCode = "401", description = "No autenticado"),
             @ApiResponse(responseCode = "403", description = "No autorizado")
     })
-    public ResponseEntity<?> enableUser(
+    public ResponseEntity<ApiResponseDTO<Void>> enableUser(
             @Parameter(description = "ID del usuario", example = "1")
             @PathVariable Integer id,
             HttpServletRequest request) {
@@ -238,10 +258,14 @@ public class UsersController {
             Users authenticatedUser = usersService.findByEmail(authenticatedEmail)
                     .orElseThrow(() -> new RuntimeException("Usuario autenticado no encontrado"));
 
-            // Verificar autorización (implementar lógica según tus necesidades)
+            // Verificar autorización
             if (!authenticatedUser.getUserId().equals(id)) {
-                return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                        .body(Map.of("error", "No autorizado para habilitar este usuario"));
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(
+                        ApiResponseDTO.error(
+                                "No autorizado para habilitar este usuario",
+                                HttpStatus.FORBIDDEN.value()
+                        )
+                );
             }
 
             // Habilitar
@@ -261,14 +285,21 @@ public class UsersController {
                     request
             );
 
-            Map<String, String> response = new HashMap<>();
-            response.put("message", "Usuario habilitado exitosamente");
-            return ResponseEntity.ok(response);
+            return ResponseEntity.ok(
+                    ApiResponseDTO.success(
+                            "Usuario habilitado exitosamente",
+                            HttpStatus.OK.value(),
+                            null
+                    )
+            );
 
         } catch (RuntimeException e) {
-            Map<String, String> error = new HashMap<>();
-            error.put("error", e.getMessage());
-            return ResponseEntity.badRequest().body(error);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
+                    ApiResponseDTO.error(
+                            e.getMessage(),
+                            HttpStatus.BAD_REQUEST.value()
+                    )
+            );
         }
     }
 }
