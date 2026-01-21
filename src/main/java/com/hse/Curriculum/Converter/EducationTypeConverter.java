@@ -14,9 +14,5 @@ public class EducationTypeConverter implements AttributeConverter<EducationTypeE
 
     @Override
     public EducationTypeEnum convertToEntityAttribute(String dbData) {
-        if (dbData == null || dbData.isEmpty()) {
-            return null;
-        }
-        return EducationTypeEnum.fromValue(dbData);
     }
 }
