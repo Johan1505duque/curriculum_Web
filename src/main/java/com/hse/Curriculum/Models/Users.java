@@ -1,17 +1,29 @@
 package com.hse.Curriculum.Models;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
 import java.time.LocalDateTime;
 import java.time.LocalDate;
 
 @Entity
 @Table(name = "users")
+@Data
+@Builder
+@AllArgsConstructor
 public class Users {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "user_id")
     private Integer userId;
+
+    @ManyToOne (fetch = FetchType.EAGER)
+    @JoinColumn(name = "role_id", nullable = false)
+    private Roles role;
 
     // ========== DATOS BÁSICOS ==========
     @Column(name = "first_name", nullable = false, length = 100)
@@ -34,6 +46,9 @@ public class Users {
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
+
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
@@ -42,7 +57,7 @@ public class Users {
     // ========== CONSTRUCTORES ==========
     public Users() {}
 
-    // Constructor para REGISTRO inicial
+    // Constructor para REGISTRO inicial sin Roll
     public Users(String firstName,
                  String lastName,
                  String email,
@@ -54,61 +69,40 @@ public class Users {
         this.status = true;
     }
 
+    // Constructor para REGISTRO inicial con Roll
+    public Users(String firstName,
+                 String lastName,
+                 String email,
+                 String password,
+                 Roles role) {
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.email = email;
+        this.password = password;
+        this.role = role;
+        this.status = true;
+    }
+
 
     // ========== GETTERS Y SETTERS ==========
-    public Integer getUserId() {
-        return userId;
+
+   public Integer getRoleId() {
+        return role != null ? role.getRoleId() : null;
+    }
+    //Validar el roll del usuario
+    public boolean hasRole(String roleName) {
+        return role != null &&
+                role.getName() != null &&
+                role.getName().equalsIgnoreCase(roleName);
     }
 
-    public void setUserId(Integer userId) {
-        this.userId = userId;
+    //validar si el usuario tiene roll Admin
+    public boolean isAdmin() {
+        return hasRole("ADMIN");
     }
 
-    public String getFirstName() {
-        return firstName;
-    }
-
-    public void setFirstName(String firstName) {
-        this.firstName = firstName;
-    }
-
-    public String getLastName() {
-        return lastName;
-    }
-
-    public void setLastName(String lastName) {
-        this.lastName = lastName;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
-    public Boolean getStatus() {
-        return status;
-    }
-
-    public void setStatus(Boolean status) {
-        this.status = status;
-    }
-
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
+    //validar si el usuario tiene roll User
+    public boolean isUser() {
+        return hasRole("USER");
     }
 }

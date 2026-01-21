@@ -3,6 +3,7 @@ package com.hse.Curriculum.Exception;
 import com.hse.Curriculum.Dto.ApiResponseDTO;
 import com.hse.Curriculum.Exception.Login.*;
 import com.hse.Curriculum.Exception.Profile.*;
+import com.hse.Curriculum.Exception.Education.*;
 import com.hse.Curriculum.Exception.Users.UserNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -10,10 +11,14 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.context.request.ServletWebRequest;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.HashMap;
 import java.util.Map;
 
+@Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
@@ -199,6 +204,66 @@ public class GlobalExceptionHandler {
                 .body(ApiResponseDTO.error(
                         "Error inesperado: " + ex.getMessage(),
                         HttpStatus.INTERNAL_SERVER_ERROR.value()
+                ));
+    }
+
+    /**
+     * Manejo de EducationNotFoundException
+     */
+    @ExceptionHandler(EducationNotFoundException.class)
+    public ResponseEntity<ApiResponseDTO<Void>> handleEducationNotFoundException(
+            EducationNotFoundException ex,
+            WebRequest request) {
+
+        log.warn("Education not found: {} - URI: {}",
+                ex.getMessage(),
+                ((ServletWebRequest) request).getRequest().getRequestURI());
+
+        return ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
+                .body(ApiResponseDTO.error(
+                        ex.getMessage(),
+                        HttpStatus.NOT_FOUND.value()
+                ));
+    }
+
+    /**
+     * Manejo de InvalidEducationDateException
+     */
+    @ExceptionHandler(InvalidEducationDateException.class)
+    public ResponseEntity<ApiResponseDTO<Void>> handleInvalidEducationDateException(
+            InvalidEducationDateException ex,
+            WebRequest request) {
+
+        log.warn("Invalid education date: {} - URI: {}",
+                ex.getMessage(),
+                ((ServletWebRequest) request).getRequest().getRequestURI());
+
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(ApiResponseDTO.error(
+                        ex.getMessage(),
+                        HttpStatus.BAD_REQUEST.value()
+                ));
+    }
+
+    /**
+     * Manejo de UnauthorizedEducationAccessException
+     */
+    @ExceptionHandler(UnauthorizedEducationAccessException.class)
+    public ResponseEntity<ApiResponseDTO<Void>> handleUnauthorizedEducationAccessException(
+            UnauthorizedEducationAccessException ex,
+            WebRequest request) {
+
+        log.warn("Unauthorized education access: {} - URI: {}",
+                ex.getMessage(),
+                ((ServletWebRequest) request).getRequest().getRequestURI());
+
+        return ResponseEntity
+                .status(HttpStatus.FORBIDDEN)
+                .body(ApiResponseDTO.error(
+                        ex.getMessage(),
+                        HttpStatus.FORBIDDEN.value()
                 ));
     }
 }
