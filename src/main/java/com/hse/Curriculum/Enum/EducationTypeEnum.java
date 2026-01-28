@@ -22,5 +22,6 @@ public enum EducationTypeEnum {
                 return type;
             }
         }
+        throw new IllegalArgumentException("Valor inválido: " + value);
     }
 }

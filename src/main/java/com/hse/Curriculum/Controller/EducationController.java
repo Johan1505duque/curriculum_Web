@@ -3,8 +3,7 @@ import com.hse.Curriculum.Dto.ApiResponseDTO;
 import com.hse.Curriculum.Dto.EducationDTO.EducationCreateDTO;
 import com.hse.Curriculum.Dto.EducationDTO.EducationResponseDTO;
 import com.hse.Curriculum.Dto.EducationDTO.EducationUpdateDTO;
-import com.hse.Curriculum.Exception.Education.EducationNotFoundException;
-import com.hse.Curriculum.Exception.Education.InvalidEducationDateException;
+import com.hse.Curriculum.Exception.Education.*;
 import com.hse.Curriculum.Models.AuditLog;
 import com.hse.Curriculum.Models.Education;
 import com.hse.Curriculum.Service.AuditService;
@@ -288,6 +287,16 @@ public class EducationController {
         try {
             var authenticatedUser = getAuthenticatedUser();
             Integer userId = authenticatedUser.getUserId();
+            // ✅ VALIDACIÓN SEGURA: Verificar que el usuario tenga rol
+            if (authenticatedUser.getRole() == null) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(
+                        ApiResponseDTO.error(
+                                "Usuario sin rol asignado. Contacte al administrador.",
+                                HttpStatus.FORBIDDEN.value()
+                        )
+                );
+            }
+
             boolean isAdmin = authenticatedUser.getRole().getName().equals("ADMIN");
 
             // Obtener datos antes de eliminar (para auditoría)

@@ -3,6 +3,8 @@ package com.hse.Curriculum.Service;
 import com.hse.Curriculum.Exception.Users.UserNotFoundException;
 import com.hse.Curriculum.Repository.UsersRepository;
 import com.hse.Curriculum.Models.Users;
+import com.hse.Curriculum.Models.Roles;
+import com.hse.Curriculum.Repository.RolesRepository;
 import com.hse.Curriculum.Dto.UserDTO.UserSignUpDTO;
 import com.hse.Curriculum.Exception.Login.*;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +20,7 @@ public class UsersService {
 
     // ✅ TODAS las dependencias se inyectan por constructor (gracias a @RequiredArgsConstructor)
     private final UsersRepository usersRepository;
+    private final RolesRepository rolesRepository;
     private final PasswordValidator passwordValidator;
     private final PasswordEncoder passwordEncoder;
 
@@ -40,15 +43,22 @@ public class UsersService {
                 signUpDTO.getLastName()
         );
 
-        // 3. Crear el usuario
+        // 3. 🔥 BUSCAR EL ROL "USER" POR DEFECTO
+        Roles userRole = rolesRepository.findByName("USER")
+                .orElseThrow(() -> new RuntimeException(
+                        "Error del sistema: Rol USER no encontrado. Contacte al administrador."
+                ));
+
+        // 4. Crear el usuario
         Users user = new Users();
         user.setFirstName(signUpDTO.getFirstName());
         user.setLastName(signUpDTO.getLastName());
         user.setEmail(signUpDTO.getEmail().toLowerCase());
         user.setPassword(passwordEncoder.encode(signUpDTO.getPassword()));
         user.setStatus(true);
+        user.setRole(userRole);
 
-        // 4. Guardar en la base de datos
+        // 5. Guardar en la base de datos
         return usersRepository.save(user);
     }
 

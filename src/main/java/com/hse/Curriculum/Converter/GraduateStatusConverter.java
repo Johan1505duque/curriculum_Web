@@ -4,6 +4,7 @@ import com.hse.Curriculum.Enum.GraduateStatusEnum;
 
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
+
 @Converter(autoApply = true)
 public class GraduateStatusConverter implements AttributeConverter<GraduateStatusEnum, String> {
 
@@ -12,14 +13,14 @@ public class GraduateStatusConverter implements AttributeConverter<GraduateStatu
         if (attribute == null) {
             return null;
         }
-        return attribute.getValue();
+        return attribute.name();
     }
 
     @Override
     public GraduateStatusEnum convertToEntityAttribute(String dbData) {
-        if (dbData == null) {
+        if (dbData == null || dbData.isEmpty() ) {
             return null;
         }
-        return GraduateStatusEnum.fromValue(dbData);
+        return GraduateStatusEnum.valueOf(dbData);
     }
 }

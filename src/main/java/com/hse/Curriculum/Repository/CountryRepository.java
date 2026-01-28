@@ -1,5 +1,8 @@
 package com.hse.Curriculum.Repository;
+
 import com.hse.Curriculum.Models.Country;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -10,32 +13,51 @@ import java.util.Optional;
 
 @Repository
 public interface CountryRepository extends JpaRepository<Country, Integer> {
-    /**
-     * Buscar país por nombre exacto (case insensitive)
-     */
-    @Query("SELECT c FROM Country c WHERE LOWER(c.countryName) = LOWER(:countryName)")
-    Optional<Country> findByCountryNameIgnoreCase(@Param("countryName") String countryName);
 
     /**
-     * Buscar países que contengan un texto en el nombre
+     * Buscar país por código numérico ISO
      */
-    @Query("SELECT c FROM Country c WHERE LOWER(c.countryName) LIKE LOWER(CONCAT('%', :searchTerm, '%')) ORDER BY c.countryName")
-    List<Country> searchByCountryName(@Param("searchTerm") String searchTerm);
+    Optional<Country> findByCountryCode(Integer countryCode);
 
     /**
-     * Verificar si existe un país por nombre
+     * Buscar país por código ISO de 2 letras
      */
-    boolean existsByCountryNameIgnoreCase(String countryName);
+    Optional<Country> findByIsoCode2(String isoCode2);
 
     /**
-     * Obtener todos los países ordenados alfabéticamente
+     * Buscar país por código ISO de 3 letras
      */
-    @Query("SELECT c FROM Country c ORDER BY c.countryName ASC")
-    List<Country> findAllOrderedByName();
+    Optional<Country> findByIsoCode3(String isoCode3);
 
     /**
-     * Contar cuántos países hay registrados
+     * Buscar países por nombre (búsqueda parcial, case-insensitive)
      */
-    @Query("SELECT COUNT(c) FROM Country c")
-    Long countAllCountries();
+    @Query("SELECT c FROM Country c WHERE LOWER(c.countryName) LIKE LOWER(CONCAT('%', :name, '%'))")
+    List<Country> findByCountryNameContaining(@Param("name") String name);
+
+    /**
+     * Buscar países por nombre con paginación
+     */
+    @Query("SELECT c FROM Country c WHERE LOWER(c.countryName) LIKE LOWER(CONCAT('%', :name, '%'))")
+    Page<Country> findByCountryNameContaining(@Param("name") String name, Pageable pageable);
+
+    /**
+     * Verificar si existe un país con ese código numérico
+     */
+    boolean existsByCountryCode(Integer countryCode);
+
+    /**
+     * Verificar si existe un país con ese código ISO-2
+     */
+    boolean existsByIsoCode2(String isoCode2);
+
+    /**
+     * Verificar si existe un país con ese código ISO-3
+     */
+    boolean existsByIsoCode3(String isoCode3);
+
+    /**
+     * Obtener todos los países ordenados por nombre
+     */
+    List<Country> findAllByOrderByCountryNameAsc();
 }
