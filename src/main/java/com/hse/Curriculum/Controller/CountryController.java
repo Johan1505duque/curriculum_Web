@@ -43,7 +43,6 @@ public class CountryController {
 
     /**
      * GET - Obtener todos los países
-     * Acceso público (sin autenticación)
      */
     @GetMapping
     @Operation(
@@ -67,7 +66,6 @@ public class CountryController {
 
     /**
      * GET - Obtener países con paginación
-     * Acceso público (sin autenticación)
      */
     @GetMapping("/paginated")
     @Operation(
@@ -99,7 +97,6 @@ public class CountryController {
 
     /**
      * GET - Obtener país por ID
-     * Acceso público (sin autenticación)
      */
     @GetMapping("/{id}")
     @Operation(
@@ -138,7 +135,6 @@ public class CountryController {
 
     /**
      * GET - Buscar países por nombre
-     * Acceso público (sin autenticación)
      */
     @GetMapping("/search")
     @Operation(

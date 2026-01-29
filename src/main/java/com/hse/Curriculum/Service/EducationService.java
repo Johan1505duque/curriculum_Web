@@ -39,8 +39,8 @@ public class EducationService {
         // Validar y obtener país si se proporciona
         Country country = null;
         if (dto.getCountryCode() != null) {
-            country = countryRepository.findById(dto.getCountryCode())
-                    .orElseThrow(() -> new RuntimeException("País no encontrado"));
+            country = countryRepository.findByCountryCode(dto.getCountryCode())
+                    .orElseThrow(() -> new RuntimeException("País con Codigo "+ dto.getCountryCode()+ "no encontrado"));
         }
 
         // Crear entidad
@@ -124,8 +124,8 @@ public class EducationService {
             education.setDegreeTitle(dto.getDegreeTitle());
         }
         if (dto.getCountryCode() != null) {
-            Country country = countryRepository.findById(dto.getCountryCode())
-                    .orElseThrow(() -> new RuntimeException("País no encontrado"));
+            Country country = countryRepository.findByCountryCode(dto.getCountryCode())
+                    .orElseThrow(() -> new RuntimeException("País con codigo "+ dto.getCountryCode() +"no fue encontrado"));
             education.setCountry(country);
         }
         if (dto.getGraduateStatus() != null) {
