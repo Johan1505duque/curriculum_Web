@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Optional;
 
@@ -152,5 +153,15 @@ public class UsersService {
      */
     public boolean existsByEmail(String email) {
         return usersRepository.existsByEmail(email);
+    }
+
+    public UserDetails loadUserByEmail(String email) {
+        Users user = findByEmail(email)
+                .orElseThrow(() -> new UserNotFoundException("Usuario no encontrado"));
+        return org.springframework.security.core.userdetails.User.builder()
+                .username(user.getEmail())
+                .password(user.getPassword())
+                .roles(user.getRole().getName())
+                .build();
     }
 }

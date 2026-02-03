@@ -2,45 +2,59 @@ package com.hse.Curriculum.Service;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
-import java.security.Key;
+import javax.crypto.SecretKey;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 
+/**
+ * Servicio para manejo de JWT (JSON Web Tokens)
+ * Compatible con io.jsonwebtoken:jjwt-api:0.12.5
+ */
 @Service
 public class JwtService {
-    @Value("${jwt.secret:404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970}")
-    private String SECRET_KEY;
 
-    @Value("${jwt.expiration:28800000}") // 8 horas en milisegundos
+    // Clave secreta para firmar tokens (debe estar en application.properties)
+    @Value("${jwt.secret.key}")
+    private String secretKey;
+
+    // Tiempo de expiración del token en milisegundos (por defecto 24 horas)
+    @Value("${jwt.expiration:86400000}")
     private long jwtExpiration;
 
-    @Value("${jwt.refresh-expiration:604800000}") // 7 días en milisegundos
-    private long refreshExpiration;
 
     /**
-     * Extraer el email (username) del token
+     * Devuelve el tiempo de expiración del JWT.
+     *
+     * @return el tiempo de expiración en milisegundos desde el epoch .
+     */
+    public long getExpirationTime() {
+        return jwtExpiration;
+    }
+    /**
+     * Extrae el username (subject) del token
+     *
+     * @param token Token JWT
+     * @return Username contenido en el token
      */
     public String extractUsername(String token) {
         return extractClaim(token, Claims::getSubject);
     }
 
     /**
-     * Extraer el userId del token
-     */
-    public Integer extractUserId(String token) {
-        return extractClaim(token, claims -> claims.get("userId", Integer.class));
-    }
-
-    /**
-     * Extraer un claim específico del token
+     * Extrae un claim específico del token
+     *
+     * @param token Token JWT
+     * @param claimsResolver Función para extraer el claim deseado
+     * @param <T> Tipo del claim
+     * @return Valor del claim
      */
     public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
         final Claims claims = extractAllClaims(token);
@@ -48,88 +62,136 @@ public class JwtService {
     }
 
     /**
-     * Generar token con información del usuario
+     * Genera un token JWT para el usuario
+     *
+     * @param userDetails Detalles del usuario
+     * @return Token JWT generado
      */
-    public String generateToken(Integer userId, String email, String fullName) {
-        Map<String, Object> extraClaims = new HashMap<>();
-        extraClaims.put("userId", userId);
-        extraClaims.put("fullName", fullName);
-
-        return buildToken(extraClaims, email, jwtExpiration);
+    public String generateToken(UserDetails userDetails) {
+        return generateToken(new HashMap<>(), userDetails);
     }
 
     /**
-     * Generar refresh token
+     * Genera un token JWT con claims adicionales
+     *
+     * @param extraClaims Claims adicionales a incluir en el token
+     * @param userDetails Detalles del usuario
+     * @return Token JWT generado
      */
-    public String generateRefreshToken(Integer userId, String email) {
-        Map<String, Object> extraClaims = new HashMap<>();
-        extraClaims.put("userId", userId);
-
-        return buildToken(extraClaims, email, refreshExpiration);
+    public String generateToken(Map<String, Object> extraClaims, UserDetails userDetails) {
+        return buildToken(extraClaims, userDetails, jwtExpiration);
     }
 
     /**
-     * Construir el token
+     * Construye el token JWT
+     *
+     * @param extraClaims Claims adicionales
+     * @param userDetails Detalles del usuario
+     * @param expiration Tiempo de expiración en milisegundos
+     * @return Token JWT construido
      */
     private String buildToken(
             Map<String, Object> extraClaims,
-            String email,
-            long expiration
-    ) {
+            UserDetails userDetails,
+            long expiration) {
+
+        long currentTimeMillis = System.currentTimeMillis();
+
         return Jwts.builder()
-                .setClaims(extraClaims)
-                .setSubject(email)
-                .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + expiration))
-                .signWith(getSignInKey(), SignatureAlgorithm.HS256)
+                .claims(extraClaims)
+                .subject(userDetails.getUsername())
+                .issuedAt(new Date(currentTimeMillis))
+                .expiration(new Date(currentTimeMillis + expiration))
+                .signWith(getSignInKey())
                 .compact();
     }
 
     /**
-     * Validar si el token es válido
+     * Valida si el token es válido para el usuario
+     *
+     * @param token Token JWT
+     * @param userDetails Detalles del usuario
+     * @return true si el token es válido, false en caso contrario
      */
-    public boolean isTokenValid(String token, String email) {
+    public boolean isTokenValid(String token, UserDetails userDetails) {
         final String username = extractUsername(token);
-        return (username.equals(email)) && !isTokenExpired(token);
+        return (username.equals(userDetails.getUsername())) && !isTokenExpired(token);
     }
 
     /**
-     * Verificar si el token ha expirado
+     * Verifica si el token ha expirado
+     *
+     * @param token Token JWT
+     * @return true si el token ha expirado, false en caso contrario
      */
     private boolean isTokenExpired(String token) {
         return extractExpiration(token).before(new Date());
     }
 
     /**
-     * Extraer fecha de expiración
+     * Extrae la fecha de expiración del token
+     *
+     * @param token Token JWT
+     * @return Fecha de expiración
      */
     private Date extractExpiration(String token) {
         return extractClaim(token, Claims::getExpiration);
     }
 
     /**
-     * Extraer todos los claims del token
+     * Extrae todos los claims del token
+     * ACTUALIZADO PARA JWT 0.12.x
+     *
+     * @param token Token JWT
+     * @return Claims del token
      */
     private Claims extractAllClaims(String token) {
-        return Jwts.parserBuilder()
-                .setSigningKey(getSignInKey())
+        return Jwts.parser()  // ← CAMBIO: parser() en lugar de parserBuilder()
+                .verifyWith(getSignInKey())  // ← CAMBIO: verifyWith() en lugar de setSigningKey()
                 .build()
-                .parseClaimsJws(token)
-                .getBody();
+                .parseSignedClaims(token)  // ← CAMBIO: parseSignedClaims() en lugar de parseClaimsJws()
+                .getPayload();  // ← CAMBIO: getPayload() en lugar de getBody()
     }
 
     /**
-     * Obtener la clave de firma
+     * Obtiene la clave de firma para los tokens
+     *
+     * @return SecretKey para firmar tokens
      */
-    private Key getSignInKey() {
-        byte[] keyBytes = Decoders.BASE64.decode(SECRET_KEY);
+    private SecretKey getSignInKey() {
+        byte[] keyBytes = Decoders.BASE64.decode(secretKey);
         return Keys.hmacShaKeyFor(keyBytes);
     }
 
     /**
-     * Obtener tiempo de expiración del token en milisegundos
+     * Genera un token de refresh (con mayor tiempo de expiración)
+     *
+     * @param userDetails Detalles del usuario
+     * @return Token de refresh
      */
-    public long getExpirationTime() {
-        return jwtExpiration;
+    public String generateRefreshToken(UserDetails userDetails) {
+        return buildToken(new HashMap<>(), userDetails, jwtExpiration * 7); // 7 veces la expiración normal
+    }
+
+    /**
+     * Extrae la fecha de emisión del token
+     *
+     * @param token Token JWT
+     * @return Fecha de emisión
+     */
+    public Date extractIssuedAt(String token) {
+        return extractClaim(token, Claims::getIssuedAt);
+    }
+
+    /**
+     * Verifica si el token fue emitido antes de una fecha específica
+     * Útil para invalidar tokens antiguos después de cambio de contraseña
+     *
+     * @param token Token JWT
+     * @param date Fecha de comparación
+     * @return true si el token fue emitido antes de la fecha
+     */
+    public boolean isTokenIssuedBefore(String token, Date date) {
+        return extractIssuedAt(token).before(date);
     }
 }

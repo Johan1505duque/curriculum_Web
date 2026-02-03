@@ -1,5 +1,6 @@
 package com.hse.Curriculum.Controller;
 
+import com.hse.Curriculum.Exception.Users.UserNotFoundException;
 import com.hse.Curriculum.Models.AuditLog;
 import com.hse.Curriculum.Service.AuditService;
 import com.hse.Curriculum.Service.JwtService;
@@ -21,9 +22,13 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
+import java.util.HashMap;
 
 @RestController
 @RequestMapping("/auth")
@@ -35,6 +40,7 @@ public class AuthController {
     private final LoginAuthService loginAuthService;
     private final JwtService jwtService;
     private final AuditService auditService;
+    private final UserDetailsService userDetailsService;
 
     /**
      * Login de usuario - Genera tokens JWT
@@ -62,17 +68,18 @@ public class AuthController {
 
             String fullName = user.getFirstName() + " " + user.getLastName();
 
-            // Generar tokens JWT
-            String accessToken = jwtService.generateToken(
-                    user.getUserId(),
-                    user.getEmail(),
-                    fullName
-            );
+            // 1. Cargar UserDetails (Spring Security)
+            UserDetails userDetails =
+                    userDetailsService.loadUserByUsername(user.getEmail());
 
-            String refreshToken = jwtService.generateRefreshToken(
-                    user.getUserId(),
-                    user.getEmail()
-            );
+            // 2. Claims personalizados
+            Map<String, Object> extraClaims = new HashMap<>();
+            extraClaims.put("userId", user.getUserId());
+            extraClaims.put("fullName", fullName);
+
+            // 3. Generar tokens JWT
+            String accessToken = jwtService.generateToken(extraClaims, userDetails);
+            String refreshToken = jwtService.generateRefreshToken(userDetails);
 
             // Registrar login en auditoría
             auditService.logSimpleAction(
@@ -143,9 +150,9 @@ public class AuthController {
 
             // Extraer información del refresh token
             String email = jwtService.extractUsername(refreshToken);
-
+            UserDetails userDetails = usersService.loadUserByEmail(email);
             // Verificar que el token sea válido
-            if (!jwtService.isTokenValid(refreshToken, email)) {
+            if (!jwtService.isTokenValid(refreshToken, userDetails)) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
                         ApiResponseDTO.error(
                                 "Refresh token inválido o expirado",
@@ -160,12 +167,31 @@ public class AuthController {
 
             String fullName = user.getFirstName() + " " + user.getLastName();
 
-            // Generar nuevo access token
-            String newAccessToken = jwtService.generateToken(
-                    user.getUserId(),
-                    user.getEmail(),
-                    fullName
-            );
+             email = jwtService.extractUsername(refreshToken);
+
+            userDetails =
+                    userDetailsService.loadUserByUsername(email);
+
+            if (!jwtService.isTokenValid(refreshToken, userDetails)) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
+                        ApiResponseDTO.error(
+                                "Refresh token inválido o expirado",
+                                HttpStatus.UNAUTHORIZED.value()
+                        )
+                );
+            }
+
+            user = usersService.findByEmail(email)
+                    .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+
+            fullName = user.getFirstName() + " " + user.getLastName();
+
+            Map<String, Object> extraClaims = new HashMap<>();
+            extraClaims.put("userId", user.getUserId());
+            extraClaims.put("fullName", fullName);
+
+            String newAccessToken =
+                    jwtService.generateToken(extraClaims, userDetails);
 
             AuthResponseDTO authData = AuthResponseDTO.builder()
                     .userId(user.getUserId())
