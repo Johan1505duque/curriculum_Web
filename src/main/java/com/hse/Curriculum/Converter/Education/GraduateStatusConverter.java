@@ -1,4 +1,4 @@
-package com.hse.Curriculum.Converter;
+package com.hse.Curriculum.Converter.Education;
 
 import com.hse.Curriculum.Enum.GraduateStatusEnum;
 

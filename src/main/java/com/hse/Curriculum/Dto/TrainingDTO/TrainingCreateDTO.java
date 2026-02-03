@@ -1,6 +1,8 @@
 package com.hse.Curriculum.Dto.TrainingDTO;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.hse.Curriculum.Converter.Training.FlexibleDateDeserializer;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
@@ -77,14 +79,17 @@ public class TrainingCreateDTO {
 
     /**
      * Fecha de finalización del curso
+     * Acepta múltiples formatos: dd/MM/yyyy, yyyy-MM-dd, dd-MM-yyyy, etc.
      */
     @PastOrPresent(message = "La fecha de finalización no puede ser futura")
+    @JsonDeserialize(using = FlexibleDateDeserializer.class)
     @JsonFormat(pattern = "dd/MM/yyyy")
     @Schema(
-            description = "Fecha de finalización del curso (solo si está completado)",
+            description = "Fecha de finalización del curso (acepta múltiples formatos)",
             example = "15/01/2024",
             type = "string",
-            format = "date"
+            format = "date",
+            implementation = String.class
     )
     private LocalDate completionDate;
 }

@@ -2,8 +2,6 @@ package com.hse.Curriculum.Models;
 
 import com.hse.Curriculum.Enum.EducationTypeEnum;
 import com.hse.Curriculum.Enum.GraduateStatusEnum;
-import com.hse.Curriculum.Converter.EducationTypeConverter;
-import com.hse.Curriculum.Converter.GraduateStatusConverter;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
