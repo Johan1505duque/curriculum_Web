@@ -1,13 +1,13 @@
 package com.hse.Curriculum.Controller;
 import com.hse.Curriculum.Dto.ApiResponseDTO;
-import com.hse.Curriculum.Dto.PostDTO.PostRegisterDTO;
-import com.hse.Curriculum.Dto.PostDTO.PostResponseDTO;
-import com.hse.Curriculum.Dto.PostDTO.PostUpdateDTO;
+import com.hse.Curriculum.Dto.ChargeDTO.ChargeRegisterDTO;
+import com.hse.Curriculum.Dto.ChargeDTO.ChargeResponseDTO;
+import com.hse.Curriculum.Dto.ChargeDTO.ChargeUpdateDTO;
 import com.hse.Curriculum.Models.AuditLog;
-import com.hse.Curriculum.Models.Post;
+import com.hse.Curriculum.Models.Charge;
 import com.hse.Curriculum.Models.Users;
 import com.hse.Curriculum.Service.AuditService;
-import com.hse.Curriculum.Service.PostService;
+import com.hse.Curriculum.Service.ChargeService;
 import com.hse.Curriculum.Service.UsersService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -28,13 +28,13 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("posts")
-@Tag(name = "Post Management", description = "Endpoints para gestionar cargos")
+@RequestMapping("charges")
+@Tag(name = "Charge Management", description = "Endpoints para gestionar cargos")
 @RequiredArgsConstructor
 @SecurityRequirement(name = "bearerAuth")
-public class PostController {
+public class ChargeController {
 
-    private final PostService postService;
+    private final ChargeService postService;
     private final AuditService auditService;
     private final UsersService usersService;
 
@@ -52,8 +52,8 @@ public class PostController {
             @ApiResponse(responseCode = "409", description = "Nombre de cargo ya existe"),
             @ApiResponse(responseCode = "401", description = "No autenticado")
     })
-    public ResponseEntity<ApiResponseDTO<PostResponseDTO>> register(
-            @Valid @RequestBody PostRegisterDTO registerDTO,
+    public ResponseEntity<ApiResponseDTO<ChargeResponseDTO>> register(
+            @Valid @RequestBody ChargeRegisterDTO registerDTO,
             HttpServletRequest request) {
         try {
             // Obtener usuario autenticado
@@ -63,7 +63,7 @@ public class PostController {
                     .orElseThrow(() -> new RuntimeException("Usuario autenticado no encontrado"));
 
             // Registrar cargo
-            Post post = postService.register(registerDTO, authenticatedUser.getUserId());
+            Charge post = postService.register(registerDTO, authenticatedUser.getUserId());
 
             // Registrar en auditoría
             auditService.logAction(
@@ -71,7 +71,7 @@ public class PostController {
                     authenticatedUser.getEmail(),
                     authenticatedUser.getFirstName() + " " + authenticatedUser.getLastName(),
                     "post",
-                    post.getPostId(),
+                    post.getChargeId(),
                     AuditLog.AuditAction.INSERT,
                     null,
                     post,
@@ -80,9 +80,9 @@ public class PostController {
             );
 
             // Preparar respuesta
-            PostResponseDTO response = new PostResponseDTO();
-            response.setPostId(post.getPostId());
-            response.setNamePost(post.getNamePost());
+            ChargeResponseDTO response = new ChargeResponseDTO();
+            response.setChargeId(post.getChargeId());
+            response.setNameCharge(post.getNameCharge());
             response.setDescription(post.getDescription());
             response.setStatus(post.getStatus());
             response.setCreatedAt(post.getCreatedAt());
@@ -126,16 +126,16 @@ public class PostController {
             @ApiResponse(responseCode = "404", description = "Cargo no encontrado"),
             @ApiResponse(responseCode = "401", description = "No autenticado")
     })
-    public ResponseEntity<ApiResponseDTO<PostResponseDTO>> getById(
+    public ResponseEntity<ApiResponseDTO<ChargeResponseDTO>> getById(
             @Parameter(description = "ID del cargo", example = "1")
             @PathVariable Integer id) {
 
         try {
-            Post post = postService.getById(id);
+            Charge post = postService.getById(id);
 
-            PostResponseDTO response = new PostResponseDTO();
-            response.setPostId(post.getPostId());
-            response.setNamePost(post.getNamePost());
+            ChargeResponseDTO response = new ChargeResponseDTO();
+            response.setChargeId(post.getChargeId());
+            response.setNameCharge(post.getNameCharge());
             response.setDescription(post.getDescription());
             response.setStatus(post.getStatus());
             response.setCreatedAt(post.getCreatedAt());
@@ -168,8 +168,8 @@ public class PostController {
             @ApiResponse(responseCode = "200", description = "Lista obtenida exitosamente"),
             @ApiResponse(responseCode = "401", description = "No autenticado")
     })
-    public ResponseEntity<ApiResponseDTO<List<PostResponseDTO>>> getAllActive() {
-        List<PostResponseDTO> posts = postService.getAllActive();
+    public ResponseEntity<ApiResponseDTO<List<ChargeResponseDTO>>> getAllActive() {
+        List<ChargeResponseDTO> posts = postService.getAllActive();
 
         return ResponseEntity.ok(
                 ApiResponseDTO.success(
@@ -190,8 +190,8 @@ public class PostController {
             @ApiResponse(responseCode = "200", description = "Lista obtenida exitosamente"),
             @ApiResponse(responseCode = "401", description = "No autenticado")
     })
-    public ResponseEntity<ApiResponseDTO<List<PostResponseDTO>>> getAll() {
-        List<PostResponseDTO> posts = postService.getAll();
+    public ResponseEntity<ApiResponseDTO<List<ChargeResponseDTO>>> getAll() {
+        List<ChargeResponseDTO> posts = postService.getAll();
 
         return ResponseEntity.ok(
                 ApiResponseDTO.success(
@@ -212,11 +212,11 @@ public class PostController {
             @ApiResponse(responseCode = "200", description = "Búsqueda completada"),
             @ApiResponse(responseCode = "401", description = "No autenticado")
     })
-    public ResponseEntity<ApiResponseDTO<List<PostResponseDTO>>> searchByName(
+    public ResponseEntity<ApiResponseDTO<List<ChargeResponseDTO>>> searchByName(
             @Parameter(description = "Texto a buscar", example = "Director")
             @RequestParam String name) {
 
-        List<PostResponseDTO> posts = postService.searchByName(name);
+        List<ChargeResponseDTO> posts = postService.searchByName(name);
 
         return ResponseEntity.ok(
                 ApiResponseDTO.success(
@@ -239,10 +239,10 @@ public class PostController {
             @ApiResponse(responseCode = "409", description = "Nombre de cargo ya existe"),
             @ApiResponse(responseCode = "401", description = "No autenticado")
     })
-    public ResponseEntity<ApiResponseDTO<PostResponseDTO>> update(
+    public ResponseEntity<ApiResponseDTO<ChargeResponseDTO>> update(
             @Parameter(description = "ID del cargo", example = "1")
             @PathVariable Integer id,
-            @Valid @RequestBody PostUpdateDTO updateDTO,
+            @Valid @RequestBody ChargeUpdateDTO updateDTO,
             HttpServletRequest request) {
         try {
             // Obtener usuario autenticado
@@ -252,10 +252,10 @@ public class PostController {
                     .orElseThrow(() -> new RuntimeException("Usuario autenticado no encontrado"));
 
             // Obtener cargo anterior para auditoría
-            Post oldPost = postService.getById(id);
+            Charge oldPost = postService.getById(id);
 
             // Actualizar
-            Post updatedPost = postService.update(id, updateDTO, authenticatedUser.getUserId());
+            Charge updatedPost = postService.update(id, updateDTO, authenticatedUser.getUserId());
 
             // Registrar en auditoría
             auditService.logAction(
@@ -272,9 +272,9 @@ public class PostController {
             );
 
             // Preparar respuesta
-            PostResponseDTO response = new PostResponseDTO();
-            response.setPostId(updatedPost.getPostId());
-            response.setNamePost(updatedPost.getNamePost());
+            ChargeResponseDTO response = new ChargeResponseDTO();
+            response.setChargeId(updatedPost.getChargeId());
+            response.setNameCharge(updatedPost.getNameCharge());
             response.setDescription(updatedPost.getDescription());
             response.setStatus(updatedPost.getStatus());
             response.setCreatedAt(updatedPost.getCreatedAt());

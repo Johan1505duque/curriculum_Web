@@ -1,4 +1,4 @@
-package com.hse.Curriculum.Dto.PostDTO;
+package com.hse.Curriculum.Dto.ChargeDTO;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
@@ -15,12 +15,12 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Schema(description = "DTO de respuesta con información completa del cargo")
-public class PostResponseDTO {
+public class ChargeResponseDTO {
     @Schema(description = "ID del cargo", example = "1")
-    private Integer postId;
+    private Integer ChargeId;
 
     @Schema(description = "Nombre del cargo", example = "CARGO_1")
-    private String namePost;
+    private String nameCharge;
 
     @Schema(description = "Descripción del cargo", example = "Descripción del cargo 1")
     private String description;

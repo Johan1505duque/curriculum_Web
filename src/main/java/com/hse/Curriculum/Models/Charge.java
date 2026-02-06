@@ -13,18 +13,18 @@ import java.time.LocalDateTime;
  * Entidad que representa los cargos de un usuario
  */
 @Entity
-@Table(name = "post")
+@Table(name = "charge")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class Post {
+public class Charge {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "post_id")
-    private Integer postId;
+    @Column(name = "charge_id")
+    private Integer chargeId;
 
-    @Column(name = "name_post", nullable = false, unique = true, length = 100)
-    private String namePost;
+    @Column(name = "name_charge", nullable = false, unique = true, length = 100)
+    private String nameCharge;
 
     @Column(name = "description", columnDefinition = "TEXT")
     private String description;
