@@ -10,12 +10,14 @@ import org.springframework.http.converter.HttpMessageNotReadableException;
 
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import com.fasterxml.jackson.databind.exc.MismatchedInputException;
+import com.hse.Curriculum.Dto.ApiResponseDTO;
 
 import com.hse.Curriculum.Exception.Country.*;
 import com.hse.Curriculum.Exception.Education.*;
 import com.hse.Curriculum.Exception.Login.*;
 import com.hse.Curriculum.Exception.Profile.*;
 import com.hse.Curriculum.Exception.Users.*;
+import com.hse.Curriculum.Exception.Training.*;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -126,11 +128,6 @@ public class GlobalExceptionHandler {
         return buildErrorResponse(ex.getMessage(), HttpStatus.NOT_FOUND);
     }
 
-    @ExceptionHandler(InvalidEducationDateException.class)
-    public ResponseEntity<Map<String, Object>> handleInvalidEducationDate(
-            InvalidEducationDateException ex) {
-        return buildErrorResponse(ex.getMessage(), HttpStatus.BAD_REQUEST);
-    }
 
     @ExceptionHandler(UnauthorizedEducationAccessException.class)
     public ResponseEntity<Map<String, Object>> handleUnauthorizedEducationAccess(
@@ -211,6 +208,16 @@ public class GlobalExceptionHandler {
         return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(body);
+    }
+
+    @ExceptionHandler({
+            InvalidCompletionDateException.class,    // ← De TrainingService
+            InvalidEducationDateException.class      // ← De EducationService
+    })
+    public ResponseEntity<ApiResponseDTO<Void>> handleFutureDateException(RuntimeException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
+                ApiResponseDTO.error(ex.getMessage(), 400)
+        );
     }
 
     // === HELPER METHOD ===

@@ -80,22 +80,26 @@ public class AuthController {
             // 3. Generar tokens JWT
             String accessToken = jwtService.generateToken(extraClaims, userDetails);
             String refreshToken = jwtService.generateRefreshToken(userDetails);
-
+            String roleName = user.getRole() != null ? user.getRole().getName() : "USER";
             // Registrar login en auditoría
             auditService.logSimpleAction(
                     user.getUserId(),
                     user.getEmail(),
+                    roleName,
                     fullName,
                     AuditLog.AuditAction.LOGIN,
                     "Inicio de sesión exitoso",
                     request
             );
 
+
+
             // Construir respuesta
             AuthResponseDTO authData = AuthResponseDTO.builder()
                     .userId(user.getUserId())
                     .email(user.getEmail())
                     .fullName(fullName)
+                    .roleName(roleName)
                     .accessToken(accessToken)
                     .refreshToken(refreshToken)
                     .tokenType("Bearer")
@@ -309,12 +313,13 @@ public class AuthController {
             if (authentication != null && authentication.isAuthenticated()) {
                 String email = authentication.getName();
                 Users user = usersService.findByEmail(email).orElse(null);
-
+                String roleName = user.getRole() != null ? user.getRole().getName() : "USER";
                 if (user != null) {
                     // Registrar logout en auditoría
                     auditService.logSimpleAction(
                             user.getUserId(),
                             user.getEmail(),
+                            roleName,
                             user.getFirstName() + " " + user.getLastName(),
                             AuditLog.AuditAction.LOGOUT,
                             "Cierre de sesión",

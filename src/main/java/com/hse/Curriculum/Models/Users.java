@@ -25,6 +25,13 @@ public class Users {
     @JoinColumn(name = "role_id", nullable = false)
     private Roles role;
 
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "charge_id", referencedColumnName = "charge_id")
+    private Charge  charge;
+
+    @OneToOne(mappedBy = "user", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    private Profiles profile;
+
     // ========== DATOS BÁSICOS ==========
     @Column(name = "first_name", nullable = false, length = 100)
     private String firstName;

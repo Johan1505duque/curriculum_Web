@@ -70,11 +70,14 @@ public class AuditService {
     public void logSimpleAction(
             Integer userId,
             String userEmail,
+            String roleName,
             String userName,
             AuditLog.AuditAction action,
             String description,
             HttpServletRequest request
     ) {
+        String fullDescription = description + " - Rol: " + roleName;
+
         logAction(userId, userEmail, userName, "system", null, action,
                 null, null, description, request);
     }

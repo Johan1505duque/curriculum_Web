@@ -49,55 +49,6 @@ public class UserRegisterDTO {
         this.birthDate = birthDate ;
     }
 
-    // Getters y Setters (IMPORTANTES)
-    public String getFirstName() {
-        return firstName;
-    }
-
-    public void setFirstName(String firstName) {
-        this.firstName = firstName;
-    }
-
-    public String getLastName() {
-        return lastName;
-    }
-
-    public void setLastName(String lastName) {
-        this.lastName = lastName;
-    }
-
-    public String getdocumentType() {
-        return documentType;
-    }
-
-    public void setdocumentType(String documentType) {
-        this.documentType = documentType;
-    }
-
-    public String getdocumentNUmber() {
-        return documentNUmber;
-    }
-
-    public void setdocumentNUmber(String documentNUmber) {
-        this.documentNUmber = documentNUmber;
-    }
-
-    public String getphoneNumber() {
-        return phoneNumber;
-    }
-
-    public void setphoneNumber(String phoneNumber) {this.phoneNumber = phoneNumber;
-    }
-
-    public LocalDate getbirthDate() {
-        return birthDate;
-    }
-
-    public void setbirthDate(LocalDate birthDate) {
-        this.birthDate = birthDate;
-    }
-
-
 
     // toString para debug (ÚTIL)
     @Override
