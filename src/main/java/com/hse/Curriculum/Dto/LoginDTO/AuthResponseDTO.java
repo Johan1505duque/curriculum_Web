@@ -26,9 +26,13 @@ public class AuthResponseDTO {
     @Schema(description = "Rol del usuario", example = "ADMIN")
     private String roleName;
 
+    @Schema(description = "Cargo del usuario", example = "Auxiliar de Facturacion")
+    private String chargeName;
+
     @Schema(description = "Nombre completo", example = "Juan Pérez")
     private String fullName;
 
+    
     private String accessToken;
     private String refreshToken;
     private String tokenType = "Bearer";
@@ -39,12 +43,18 @@ public class AuthResponseDTO {
 
 
 
-    public AuthResponseDTO(Integer userId, String email, String fullName, String message, String roleName) {
+    public AuthResponseDTO(Integer userId,
+                           String email,
+                           String fullName,
+                           String message,
+                           String roleName,
+                           String chargeName) {
         this.userId = userId;
         this.email = email;
         this.roleName = roleName;
         this.fullName = fullName;
         this.message = message;
+        this.chargeName = chargeName;
     }
 
     public Integer getUserId() {
@@ -61,6 +71,14 @@ public class AuthResponseDTO {
 
     public void setEmail(String email) {
         this.email = email;
+    }
+
+    public String getChargeName() {
+        return chargeName;
+    }
+
+    public void setChargeName(String chargeName) {
+        this.chargeName = chargeName;
     }
 
     public String getRoleName(){return roleName;}

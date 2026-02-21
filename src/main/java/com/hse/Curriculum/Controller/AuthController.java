@@ -81,11 +81,13 @@ public class AuthController {
             String accessToken = jwtService.generateToken(extraClaims, userDetails);
             String refreshToken = jwtService.generateRefreshToken(userDetails);
             String roleName = user.getRole() != null ? user.getRole().getName() : "USER";
+            String chargeName = user.getCharge() != null ? user.getCharge().getNameCharge() : "";
             // Registrar login en auditoría
             auditService.logSimpleAction(
                     user.getUserId(),
                     user.getEmail(),
                     roleName,
+                    chargeName,
                     fullName,
                     AuditLog.AuditAction.LOGIN,
                     "Inicio de sesión exitoso",
@@ -314,12 +316,14 @@ public class AuthController {
                 String email = authentication.getName();
                 Users user = usersService.findByEmail(email).orElse(null);
                 String roleName = user.getRole() != null ? user.getRole().getName() : "USER";
+                String chargeName = user.getCharge() != null ? user.getCharge().getNameCharge() : "";
                 if (user != null) {
                     // Registrar logout en auditoría
                     auditService.logSimpleAction(
                             user.getUserId(),
                             user.getEmail(),
                             roleName,
+                            chargeName,
                             user.getFirstName() + " " + user.getLastName(),
                             AuditLog.AuditAction.LOGOUT,
                             "Cierre de sesión",
