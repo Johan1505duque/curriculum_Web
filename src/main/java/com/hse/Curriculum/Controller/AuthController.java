@@ -102,6 +102,7 @@ public class AuthController {
                     .email(user.getEmail())
                     .fullName(fullName)
                     .roleName(roleName)
+                    .chargeName(chargeName)
                     .accessToken(accessToken)
                     .refreshToken(refreshToken)
                     .tokenType("Bearer")
