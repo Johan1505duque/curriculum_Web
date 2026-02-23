@@ -1,4 +1,4 @@
-package com.hse.Curriculum.Controller;
+package com.hse.Curriculum.Controller.GeoController;
 
 import com.hse.Curriculum.Dto.ApiResponseDTO;
 import com.hse.Curriculum.Dto.CountryDTO.*;
@@ -6,7 +6,6 @@ import com.hse.Curriculum.Exception.Country.CountryAlreadyExistsException;
 import com.hse.Curriculum.Exception.Country.CountryInUseException;
 import com.hse.Curriculum.Exception.Country.CountryNotFoundException;
 import com.hse.Curriculum.Models.AuditLog;
-import com.hse.Curriculum.Models.Country;
 import com.hse.Curriculum.Service.AuditService;
 import com.hse.Curriculum.Service.CountryService;
 import com.hse.Curriculum.Service.UsersService;
